@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+
+workspace/drafts/
+workspace/reviews/
+workspace/checkpoints/
+
+.DS_Store

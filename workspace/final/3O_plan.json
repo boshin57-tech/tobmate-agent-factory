@@ -1,0 +1,179 @@
+{
+  "batches": [
+    {
+      "section_start": 2601,
+      "section_end": 2610,
+      "title": "목적·범위 및 용어/역할(Overview)",
+      "topics": [
+        "Purpose/Scope: Gold Liquidity Pool Framework의 적용 범위, 비적용 범위, 전제(Verified physical reserve 선행 등)",
+        "핵심 구성요소 개요: Pool, Vault/Reserve, LP Token(FT), Principal Ownership NFT, Oracle, Validator, Auditor",
+        "권리 분리 원칙: 원금 소유(NFT) vs 경제적 활용(FT) 분리(Constitution 3)",
+        "상태 전이 공통 절차: Business Rule Validation(BRV) + Execution Authorization(EA) 게이트(Constitution 4)",
+        "결정론적 원장 상태 요구사항(Deterministic canonical state)(Constitution 6)",
+        "회계/자산 분리: Treasury/Insurance/Revenue/User assets segregated(Constitution 8) 개요"
+      ],
+      "dependencies": [
+        "terminology.md [REFERENCE_REQUIRED]",
+        "section_index.md [REFERENCE_REQUIRED]",
+        "object_registry.md [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]",
+        "Chapter 3N(complete) 공통 게이트(BRV/EA), 발행/상환/정산 전제 [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2611,
+      "section_end": 2620,
+      "title": "풀 객체 모델 및 계정/금고 분리(Accounts & Segregation)",
+      "topics": [
+        "Pool Object Model: PoolConfig, PoolState, FeeModel, RiskParams, AllowedAssets, Whitelist/Permissions",
+        "금고/계정 분리 모델: UserCustody, PoolReserve, Treasury, InsuranceReserve, ProtocolRevenue 계정 체계",
+        "원금 소유 NFT 매핑: InvestorPrincipalPosition(IPP)와 Pool 참여 관계(참여권/담보권의 분리)",
+        "FT 모델: LiquidityShareFT(예: GLP-FT) 발행/소각 규칙의 상위 개요(세부는 후속 섹션)",
+        "회계 이벤트 표준화: Mint/Burn/Swap/FeeAccrual/SettlementEvent 구조"
+      ],
+      "dependencies": [
+        "object_registry.md [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]",
+        "Constitution 2,3,8 준수 항목",
+        "Chapter 3N 자산계정/분개 이벤트 표준 [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2621,
+      "section_end": 2630,
+      "title": "예치(Deposit)·발행(Mint) 플로우: 준비금 연동",
+      "topics": [
+        "DepositRequest → BRV → EA → Execute → Finalize의 표준 상태 전이",
+        "예치 자산 유형: 실물 연동 금(allocated/unallocated) vs 온체인 표현(Reserve Receipt 등) [REFERENCE_REQUIRED]",
+        "발행 전제: Verified physical reserve 선행(Constitution 1) 검증 포인트 및 증빙 해시(anchor) 구조",
+        "LP FT 발행량 산정(수식 프레임): NAV 기반/수수료 차감/슬리피지 룰(결정론적 입력만 사용)",
+        "예치 실패 처리: 증빙 불일치, 권한 미승인, 계정 분리 위반, 결정론성 위반"
+      ],
+      "dependencies": [
+        "Reserve verification 모듈/오라클 인터페이스 [REFERENCE_REQUIRED]",
+        "BRV/EA 공통 프레임워크 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]",
+        "Constitution 1,4,6,8"
+      ]
+    },
+    {
+      "section_start": 2631,
+      "section_end": 2640,
+      "title": "인출/상환(Withdraw/Redemption)·소각(Burn)·실물 인도 추적",
+      "topics": [
+        "WithdrawRequest 상태기계: Requested→Validated→Authorized→Queued→Settled/Rejected",
+        "상환 소각: LP FT Burn과 Reserve release의 원자적 연결(atomic linkage) 또는 2단계 확정 모델",
+        "실물 인도(physical delivery) 및 정산 추적 이벤트: DeliveryOrder, CustodianAck, ChainAnchor",
+        "부분 상환/대기열(Queue) 정책: 유동성 제약, 보험/트레저리 개입 금지선",
+        "실패/복구: 재고 부족, 증빙 누락, 네트워크 분기, 재처리(idempotency) 키"
+      ],
+      "dependencies": [
+        "Delivery/Redemption 추적 표준(Constitution 9) [REFERENCE_REQUIRED]",
+        "Reserve/Vault 상태 모델 [REFERENCE_REQUIRED]",
+        "Constitution 1,4,5,6,8,9"
+      ]
+    },
+    {
+      "section_start": 2641,
+      "section_end": 2650,
+      "title": "스왑/유동성 연산(Swap & Liquidity Ops) 제약 및 가격결정",
+      "topics": [
+        "Swap 종류: Gold↔Cash(또는 stable) / Gold↔Gold-derivative [REFERENCE_REQUIRED]",
+        "가격결정 입력: Oracle price, Pool inventory, FeeModel; 비결정론 입력 금지",
+        "유동성 연산 불변조건: reserve/ownership/consensus/audit invariants 우회 금지(Constitution 5)",
+        "MEV/프론트러닝 완화: batch auction, commit-reveal, TWAP 사용 가능성(결정론 조건하)",
+        "실패 처리: 가격 피드 불능, 슬리피지 초과, 재고 한도 초과, 권한 실패"
+      ],
+      "dependencies": [
+        "Oracle/PriceFeed 인터페이스 [REFERENCE_REQUIRED]",
+        "Consensus/Determinism 규격 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]",
+        "Constitution 5,6,7"
+      ]
+    },
+    {
+      "section_start": 2651,
+      "section_end": 2660,
+      "title": "수수료(Fee)·보상(Rewards)·수익원 검증(Value Source Proof)",
+      "topics": [
+        "FeeAccrual 모델: swap fee, management fee, withdrawal fee 등과 계정 귀속(ProtocolRevenue/Insurance/LP)",
+        "보상 분배 원칙: 모든 경제적 보상은 정의되고 감사 가능한 가치원(Value Source)에 대응(Constitution 7)",
+        "수수료/보상 분배의 결정론적 계산: epoch 기반, 스냅샷 규칙, rounding 정책",
+        "금고 분리 준수: Treasury/Insurance/Revenue/User assets 간 이동의 허용 경로 정의",
+        "실패 처리: 가치원 증빙 부재, 이중계상, 음수 수익, 분배 불일치"
+      ],
+      "dependencies": [
+        "Protocol revenue accounting 표준 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]",
+        "Constitution 7,8,6"
+      ]
+    },
+    {
+      "section_start": 2661,
+      "section_end": 2670,
+      "title": "리스크/보험(Insurance)·손실흡수(Waterfall) 및 격리",
+      "topics": [
+        "보험준비금(InsuranceReserve) 사용 트리거: 결손/도난/가격 괴리/정산 실패 등 정의",
+        "손실흡수 순서(Waterfall): 사용자 자산 보호/프로토콜 자산 격리 원칙 하의 순서 규정",
+        "리스크 한도: concentration limit, inventory limit, oracle deviation limit, redemption throttle",
+        "복구/정리: unwind, pause, circuit breaker, governance intervention의 EA 범위",
+        "실패 처리 및 감사: 보험 사용의 근거 데이터, 승인 로그, 사후 정산"
+      ],
+      "dependencies": [
+        "RiskParams/Policy object [REFERENCE_REQUIRED]",
+        "Governance/Authorization 모듈 [REFERENCE_REQUIRED]",
+        "Constitution 4,5,8,7"
+      ]
+    },
+    {
+      "section_start": 2671,
+      "section_end": 2680,
+      "title": "검증(BRV)·승인(EA)·권한(Permissions) 및 합의/결정론 보장",
+      "topics": [
+        "BRV 룰셋: reserve 선행, 자산 분리, NFT/FT 권리 분리, 상태기계 전이 유효성",
+        "EA 서명 정책: 역할 기반(RBAC/ABAC), 멀티시그, 시간잠금(time-lock) [REFERENCE_REQUIRED]",
+        "결정론 보장: 입력 정규화, 오라클 스냅샷, 이벤트 순서, 재실행 가능성(replayability)",
+        "불변조건 위반 차단: liquidity op 우회 금지, silent dilution 금지",
+        "실패 처리: 승인 만료, 서명 불일치, 룰 충돌, 체인 재구성(reorg) 대응"
+      ],
+      "dependencies": [
+        "BRV/EA 프레임워크 정의(공통) [REFERENCE_REQUIRED]",
+        "Consensus 규격 [REFERENCE_REQUIRED]",
+        "Constitution 2,4,5,6"
+      ]
+    },
+    {
+      "section_start": 2681,
+      "section_end": 2690,
+      "title": "감사(Audit)·추적(Traceability)·정산( Settlement ) 로그 표준",
+      "topics": [
+        "감사 로그 범주: ReserveProof, Mint/Burn, Swap, FeeAccrual, InsuranceUse, Delivery/Redemption",
+        "추적성: 실물 인도/상환/소각/정산/복구의 end-to-end trace(Constitution 9)",
+        "감사 증적(artifact): 해시 앵커, 외부 보고서 참조, 서명된 승인/검증 레코드",
+        "결정론 원장 상태와 감사 로그의 연결: event sourcing/merkleization 옵션",
+        "실패 처리: 로그 누락/중복, 외부 증빙 지연, 감사 불일치 발견 시 처리(hold/rollback 불가 시 보정 이벤트)"
+      ],
+      "dependencies": [
+        "Audit schema/object registry [REFERENCE_REQUIRED]",
+        "Delivery/Redemption 표준 [REFERENCE_REQUIRED]",
+        "Constitution 6,9,7"
+      ]
+    },
+    {
+      "section_start": 2691,
+      "section_end": 2700,
+      "title": "완료 불변조건(Completion Invariants) 및 다음 장 전이(Transition)",
+      "topics": [
+        "챕터 완료 불변조건: reserve 선행 발행, silent dilution 방지, NFT/FT 권리 분리, BRV/EA 게이트, 유동성 연산 우회 금지, 결정론 상태, 가치원 기반 보상, 자산 분리, 인도/상환 추적, backward-compatible invariants(Constitution 1~10)",
+        "상태기계 종단 조건: 모든 요청 흐름(Deposit/Withdraw/Swap/Fee/Insurance)이 Settled/Rejected로 종결되며 감사 가능",
+        "모듈 확장 지침: 신규 풀 타입/자산 추가 시 불변조건 회귀 테스트 요구사항",
+        "다음 장으로의 전이: 상위 프레임워크를 기반으로 한 [REFERENCE_REQUIRED: next chapter code/title]의 입력/출력 계약(interfaces), 공유 객체, 공통 이벤트"
+      ],
+      "dependencies": [
+        "invariant_registry.md [REFERENCE_REQUIRED]",
+        "section_index.md [REFERENCE_REQUIRED] (다음 장 식별용)",
+        "Constitution 10 및 1~9 전 항목"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+project_name: TOBMATE Blockchain Architecture
+current_chapter: 3O
+current_section_start: 2601
+target_chapters:
+  - code: 3O
+    title: Gold Liquidity Pool Framework
+    section_start: 2601
+    section_end: 2700
+  - code: 3P
+    title: Gold DeFi Framework
+    section_start: 2701
+    section_end: 2800
+  - code: 3Q
+    title: Multi-Revenue Distribution Framework
+    section_start: 2801
+    section_end: 2900
+  - code: 3R
+    title: Treasury Framework
+    section_start: 2901
+    section_end: 3000
+  - code: 3S
+    title: Insurance Reserve Framework
+    section_start: 3001
+    section_end: 3100
+  - code: 3T
+    title: DAO Governance Framework
+    section_start: 3101
+    section_end: 3200
+  - code: 3U
+    title: Global Settlement Framework
+    section_start: 3201
+    section_end: 3300
+  - code: 3V
+    title: Move and Rust Reference Implementation
+    section_start: 3301
+    section_end: 3450
+  - code: 3W
+    title: Complete Economic Architecture
+    section_start: 3451
+    section_end: 3550
+
+mandatory_principles:
+  - Verified Reserve
+  - Original Investor Principal Ownership Protection
+  - NFT principal ownership and FT economic utility separation
+  - Deterministic State Transition
+  - Business Rule Validation Framework
+  - Execution Authorization Framework
+  - Immutable Audit
+  - Canonical Ledger
+  - Multi-Revenue Fee Distribution
+  - Treasury and Insurance isolation
+  - Sui Move object-centric implementation
+
+output_language: Korean
+technical_terms_language: English

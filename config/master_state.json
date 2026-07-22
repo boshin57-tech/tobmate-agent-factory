@@ -1,0 +1,151 @@
+{
+  "project": "TOBMATE Blockchain Architecture",
+  "status": {
+    "completed_through": "Chapter 3N / Section 2503.144.9.11.12.15.12.13.44.24",
+    "next_chapter": "3O",
+    "next_title": "Gold Liquidity Pool Framework (GLPF)"
+  },
+  "completed_domains": [
+    "Blockchain foundation and Sui/Move object model",
+    "TMID and account/identity architecture",
+    "NFT framework",
+    "FT and GOLDPEG economic layer",
+    "Gold Reserve architecture",
+    "Original Investor Principal Ownership",
+    "Business Rule Validation Framework (BRVF)",
+    "Execution Authorization Framework (EAF)",
+    "Gold Reserve Business Rule Framework (GRBF)",
+    "Physical Delivery Business Rule Framework (PDBRF)",
+    "Constitutional declarations and invariants"
+  ],
+  "binding_invariants": [
+    "Verified reserve before issuance",
+    "Original Investor Principal Ownership must remain protected",
+    "NFT principal ownership and FT economic utility are separate",
+    "No mint, burn, redemption, delivery, transfer, settlement, or liquidity action without BRVF and EAF",
+    "Canonical state must be deterministic",
+    "All state changes must be auditable and traceable",
+    "Treasury, insurance, protocol revenue, reserve, and user assets must be segregated",
+    "No yield or reward without a defined revenue source",
+    "Physical delivery must preserve digital-physical conservation",
+    "Governance cannot override constitutional invariants"
+  ],
+  "remaining_chapters": [
+    {
+      "code": "3O",
+      "title": "Gold Liquidity Pool Framework",
+      "focus": [
+        "Pool objects",
+        "NFT/FT hybrid liquidity",
+        "LP accounting",
+        "swap settlement",
+        "pool invariants"
+      ]
+    },
+    {
+      "code": "3P",
+      "title": "Gold DeFi Framework",
+      "focus": [
+        "AMM",
+        "routing",
+        "oracle",
+        "staking",
+        "lending",
+        "borrowing",
+        "liquidation"
+      ]
+    },
+    {
+      "code": "3Q",
+      "title": "Multi-Revenue Distribution Framework",
+      "focus": [
+        "trading fees",
+        "marketplace fees",
+        "gold/ETF revenue",
+        "NFT revenue",
+        "FT revenue",
+        "treasury revenue",
+        "distribution waterfall"
+      ]
+    },
+    {
+      "code": "3R",
+      "title": "Treasury Framework",
+      "focus": [
+        "treasury objects",
+        "reserve separation",
+        "operations",
+        "investment policy",
+        "governance"
+      ]
+    },
+    {
+      "code": "3S",
+      "title": "Insurance Reserve Framework",
+      "focus": [
+        "insurance pools",
+        "custodian failure",
+        "contract risk",
+        "liquidation protection",
+        "recovery"
+      ]
+    },
+    {
+      "code": "3T",
+      "title": "DAO Governance Framework",
+      "focus": [
+        "proposal",
+        "voting",
+        "delegation",
+        "timelock",
+        "emergency governance",
+        "upgrade controls"
+      ]
+    },
+    {
+      "code": "3U",
+      "title": "Global Settlement Framework",
+      "focus": [
+        "cross-chain",
+        "banking rails",
+        "CBDC",
+        "stablecoins",
+        "institutional settlement",
+        "compliance adapters"
+      ]
+    },
+    {
+      "code": "3V",
+      "title": "Move and Rust Reference Implementation",
+      "focus": [
+        "Move packages",
+        "Rust services",
+        "indexer",
+        "API",
+        "events",
+        "tests"
+      ]
+    },
+    {
+      "code": "3W",
+      "title": "Complete Economic Architecture",
+      "focus": [
+        "end-to-end integration",
+        "economic invariants",
+        "stress tests",
+        "deployment model",
+        "completion statement"
+      ]
+    }
+  ],
+  "completion_definition": [
+    "Every planned section exists and has a unique number",
+    "Every object has fields, owner, lifecycle, states, transitions, events, permissions, failure modes, and audit records",
+    "Every economic flow has source, destination, accounting equation, limits, and rollback/recovery path",
+    "Every chapter has invariants, threat model, tests, and transition statement",
+    "All cross references resolve",
+    "No duplicate or contradictory definition remains",
+    "Move/Rust implementation mapping exists for every executable component",
+    "Final gap report contains zero critical gaps"
+  ]
+}
