@@ -1,0 +1,775 @@
+{
+  "generated_at": "2026-07-23T00:18:29.099291+00:00",
+  "document_count": 85,
+  "indexed_document_count": 85,
+  "error_count": 0,
+  "total_chunks": 1845,
+  "total_characters": 2789885,
+  "files": [
+    {
+      "document_id": "2ea694d6cf18eded",
+      "source_path": "design/설계/B,Chain Phase 1.docx",
+      "file_name": "B,Chain Phase 1.docx",
+      "size_bytes": 39786,
+      "sha256": "e1fa72e298de2e839e2be7be39a55d043cc97a9b8b42d76c4d628210b2c1ebef",
+      "character_count": 18447,
+      "chunk_count": 12
+    },
+    {
+      "document_id": "a521a39bdd5b6879",
+      "source_path": "design/설계/B,Chain Phase 10.docx",
+      "file_name": "B,Chain Phase 10.docx",
+      "size_bytes": 55096,
+      "sha256": "507da1170743f303e293078803ce46e2919d36a90409e010d8e86c80a1a1c11c",
+      "character_count": 33679,
+      "chunk_count": 22
+    },
+    {
+      "document_id": "fb50143b70073c6f",
+      "source_path": "design/설계/B,Chain Phase 11.docx",
+      "file_name": "B,Chain Phase 11.docx",
+      "size_bytes": 61307,
+      "sha256": "3166a73190e30cef62cade63d7a9205096f733b15d8b32d6f78449a3317e5e55",
+      "character_count": 37416,
+      "chunk_count": 25
+    },
+    {
+      "document_id": "50b17a97385ae204",
+      "source_path": "design/설계/B,Chain Phase 12.docx",
+      "file_name": "B,Chain Phase 12.docx",
+      "size_bytes": 63390,
+      "sha256": "0fb38dbc84a9af53833bbbf4f096cd6f02e245f6f0a06f1fb11eacb9d146d685",
+      "character_count": 37823,
+      "chunk_count": 25
+    },
+    {
+      "document_id": "c9fcdd3d17d86de5",
+      "source_path": "design/설계/B,Chain Phase 13.docx",
+      "file_name": "B,Chain Phase 13.docx",
+      "size_bytes": 72081,
+      "sha256": "d33da6267f3fbdc6a263a1077f763718684ba2b276da45b2ef766660fa4e61f9",
+      "character_count": 44332,
+      "chunk_count": 29
+    },
+    {
+      "document_id": "80f0b607e3b5ed86",
+      "source_path": "design/설계/B,Chain Phase 14.docx",
+      "file_name": "B,Chain Phase 14.docx",
+      "size_bytes": 72543,
+      "sha256": "916fed54a7afed543afb9e34b16f717b43990fd3416f45dd9a4b47bb52d7f593",
+      "character_count": 43023,
+      "chunk_count": 28
+    },
+    {
+      "document_id": "102220b5aba71c28",
+      "source_path": "design/설계/B,Chain Phase 15.docx",
+      "file_name": "B,Chain Phase 15.docx",
+      "size_bytes": 68092,
+      "sha256": "259ff39582dd9e431c4e54d2c47d96d63fee9f47432321096c77ed6973ac3186",
+      "character_count": 39612,
+      "chunk_count": 26
+    },
+    {
+      "document_id": "2ee4514b19b2faca",
+      "source_path": "design/설계/B,Chain Phase 16.docx",
+      "file_name": "B,Chain Phase 16.docx",
+      "size_bytes": 65416,
+      "sha256": "223e34b6aff6718a35db041cbcf7862b4325b456575a58affd7a5b977281524f",
+      "character_count": 36359,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "0c6dbfe81f39040e",
+      "source_path": "design/설계/B,Chain Phase 17.docx",
+      "file_name": "B,Chain Phase 17.docx",
+      "size_bytes": 64920,
+      "sha256": "6fe473aadb257587385abcac1435ac92d5fed1c17303d0d7c078189441eb4b8d",
+      "character_count": 37066,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "cb7fbda47487f486",
+      "source_path": "design/설계/B,Chain Phase 18.docx",
+      "file_name": "B,Chain Phase 18.docx",
+      "size_bytes": 57914,
+      "sha256": "5650821f8cb27ef74942ae37d2a67fda069b74a7b6fc0fd9c02323bb15fb50ef",
+      "character_count": 30261,
+      "chunk_count": 20
+    },
+    {
+      "document_id": "a37635c29e66bd86",
+      "source_path": "design/설계/B,Chain Phase 19.docx",
+      "file_name": "B,Chain Phase 19.docx",
+      "size_bytes": 67794,
+      "sha256": "31ce39a5545d3d3de1b368fbbdaa17382bd1cebed84bd1a8ebe2f0abd6dfffa3",
+      "character_count": 40667,
+      "chunk_count": 27
+    },
+    {
+      "document_id": "149b3b4f80367f6f",
+      "source_path": "design/설계/B,Chain Phase 2.docx",
+      "file_name": "B,Chain Phase 2.docx",
+      "size_bytes": 48097,
+      "sha256": "89040f028e5cbed9902166da87d1710672a2e88097fff4fd8849cb3697a5fcc6",
+      "character_count": 26695,
+      "chunk_count": 18
+    },
+    {
+      "document_id": "5c379a8d35c2f5ca",
+      "source_path": "design/설계/B,Chain Phase 20.docx",
+      "file_name": "B,Chain Phase 20.docx",
+      "size_bytes": 52734,
+      "sha256": "3bad384b9f2293ed953eafff798d57548b37f10420156577de843d722b27f7a1",
+      "character_count": 30396,
+      "chunk_count": 20
+    },
+    {
+      "document_id": "885f86486c9623e4",
+      "source_path": "design/설계/B,Chain Phase 3.docx",
+      "file_name": "B,Chain Phase 3.docx",
+      "size_bytes": 55702,
+      "sha256": "d102971a89c0d6ea2d4ba4cea9cc71b56c5e3fc49da4b1d1c71e031620e5ded8",
+      "character_count": 36080,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "7f2fb16541f5e40a",
+      "source_path": "design/설계/B,Chain Phase 4.docx",
+      "file_name": "B,Chain Phase 4.docx",
+      "size_bytes": 52777,
+      "sha256": "75436f807f832b01d8f40d936b53d867b151fb474af3bc7673b8f757457e3d7c",
+      "character_count": 33692,
+      "chunk_count": 22
+    },
+    {
+      "document_id": "81b3e02253a18619",
+      "source_path": "design/설계/B,Chain Phase 5.docx",
+      "file_name": "B,Chain Phase 5.docx",
+      "size_bytes": 54270,
+      "sha256": "1b265482bb3b9850d84eb9bd13fe2c56501570e0804641160ae837364de560b0",
+      "character_count": 33597,
+      "chunk_count": 22
+    },
+    {
+      "document_id": "cf25c65e741e9a61",
+      "source_path": "design/설계/B,Chain Phase 6.docx",
+      "file_name": "B,Chain Phase 6.docx",
+      "size_bytes": 57330,
+      "sha256": "6ab82b7b86e27846aad7642a189c1ea3da80fe2cafd2c52922a2bd7b274a084b",
+      "character_count": 31435,
+      "chunk_count": 21
+    },
+    {
+      "document_id": "564ca0415a410de0",
+      "source_path": "design/설계/B,Chain Phase 7.docx",
+      "file_name": "B,Chain Phase 7.docx",
+      "size_bytes": 78208,
+      "sha256": "38759353830d823e74ce034d8fdb076dd0b431e30b99c089889aa6c5bec3ce78",
+      "character_count": 45510,
+      "chunk_count": 30
+    },
+    {
+      "document_id": "4b15d98ed2abecc6",
+      "source_path": "design/설계/B,Chain Phase 8.docx",
+      "file_name": "B,Chain Phase 8.docx",
+      "size_bytes": 57063,
+      "sha256": "b08ec58eb289aed62b4f57ea5006623e23b22bf413f260ea710d887b1135c9c8",
+      "character_count": 30807,
+      "chunk_count": 20
+    },
+    {
+      "document_id": "f1845562ac3d175d",
+      "source_path": "design/설계/B,Chain Phase 9.docx",
+      "file_name": "B,Chain Phase 9.docx",
+      "size_bytes": 61278,
+      "sha256": "d7939750d0baaede18007676fbdf125427b48f2f40029b169f4a6cd981ed661d",
+      "character_count": 32489,
+      "chunk_count": 21
+    },
+    {
+      "document_id": "dd47a1a38710d310",
+      "source_path": "implementation/실시/Chapter 3 I.docx",
+      "file_name": "Chapter 3 I.docx",
+      "size_bytes": 59928,
+      "sha256": "f54e86751180441ee1d2dd1e0e857dcc7abbf68a4c99928af02e2c9a8968765e",
+      "character_count": 32363,
+      "chunk_count": 21
+    },
+    {
+      "document_id": "dd2751cea44de8e5",
+      "source_path": "implementation/실시/Chapter 3 J.docx",
+      "file_name": "Chapter 3 J.docx",
+      "size_bytes": 62384,
+      "sha256": "9e8ad505bc4d1d919e5c996af41915a9382eb21f6fa2383f61d9471e1b85e572",
+      "character_count": 33784,
+      "chunk_count": 22
+    },
+    {
+      "document_id": "d657c64df47d3e22",
+      "source_path": "implementation/실시/Chapter 3 L.docx",
+      "file_name": "Chapter 3 L.docx",
+      "size_bytes": 70616,
+      "sha256": "ebf3d2ea43794c46462adb7039bbface2229581673a0ca166ef7bb4b5c21e493",
+      "character_count": 38544,
+      "chunk_count": 25
+    },
+    {
+      "document_id": "3d614a852d1b98e5",
+      "source_path": "implementation/실시/Chapter 3A Part 1.docx",
+      "file_name": "Chapter 3A Part 1.docx",
+      "size_bytes": 57041,
+      "sha256": "662a27c003077102a70fa9e26a6d99a3efe41e521b74a92d1a0b3f2059211b2f",
+      "character_count": 38437,
+      "chunk_count": 25
+    },
+    {
+      "document_id": "a06a01546dd38687",
+      "source_path": "implementation/실시/Chapter 3A Part 2.docx",
+      "file_name": "Chapter 3A Part 2.docx",
+      "size_bytes": 41898,
+      "sha256": "2ffc322b2e8ecd38cba434ff0bbbd629c3c3105cb1a9939c7ddc7956bb3f1451",
+      "character_count": 27143,
+      "chunk_count": 18
+    },
+    {
+      "document_id": "6d25fbd6f5cc5210",
+      "source_path": "implementation/실시/Chapter 3A Part 3.1.docx",
+      "file_name": "Chapter 3A Part 3.1.docx",
+      "size_bytes": 44144,
+      "sha256": "0123c9b2663623d8a8f7e5a000ad5919196ce8717c5dbe02ba293479ba66803d",
+      "character_count": 27796,
+      "chunk_count": 18
+    },
+    {
+      "document_id": "0eca361fbb52e10c",
+      "source_path": "implementation/실시/Chapter 3A Part 3.2.docx",
+      "file_name": "Chapter 3A Part 3.2.docx",
+      "size_bytes": 40912,
+      "sha256": "03114cc2152c7cfcc8376bbd4197cc0e3379e6cd204ddbf0df45c85b530600d4",
+      "character_count": 24729,
+      "chunk_count": 16
+    },
+    {
+      "document_id": "b81294842046b5d5",
+      "source_path": "implementation/실시/Chapter 3A Part 3.3.docx",
+      "file_name": "Chapter 3A Part 3.3.docx",
+      "size_bytes": 49946,
+      "sha256": "3f5887a91df2cc43e146cf33fec0f517c7a9ef577573246a281704dc9eaa5181",
+      "character_count": 34183,
+      "chunk_count": 23
+    },
+    {
+      "document_id": "dc4e9b6449c7a1d6",
+      "source_path": "implementation/실시/Chapter 3A Part 3.4.docx",
+      "file_name": "Chapter 3A Part 3.4.docx",
+      "size_bytes": 51818,
+      "sha256": "f06221780b73a8fbb4aff1417a44160302a9e365a1a7cce8d5d7e1ba84b2732d",
+      "character_count": 35639,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "442b04a0d43d1f83",
+      "source_path": "implementation/실시/Chapter 3A Part 3.5.docx",
+      "file_name": "Chapter 3A Part 3.5.docx",
+      "size_bytes": 63677,
+      "sha256": "dd0d91693bc1182c33475efa040b54505ad500c8bbdb5690b6a6261c2c028707",
+      "character_count": 45894,
+      "chunk_count": 30
+    },
+    {
+      "document_id": "eef548f76d99ecbc",
+      "source_path": "implementation/실시/Chapter 3A Part 3.docx",
+      "file_name": "Chapter 3A Part 3.docx",
+      "size_bytes": 50005,
+      "sha256": "3fb94f9d3aaed17fcc2e9cd33d93494070c5d71ce17df31a0ff86854c9fb51e8",
+      "character_count": 36102,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "674a07a70aca90c2",
+      "source_path": "implementation/실시/Chapter 3B Part 1.docx",
+      "file_name": "Chapter 3B Part 1.docx",
+      "size_bytes": 60609,
+      "sha256": "f8354231a6a31a5356bdcbbb0e5212cd307f4430c8c0d5a0d18d0548397057b2",
+      "character_count": 34167,
+      "chunk_count": 23
+    },
+    {
+      "document_id": "23835ac867aab268",
+      "source_path": "implementation/실시/Chapter 3B Part 2.docx",
+      "file_name": "Chapter 3B Part 2.docx",
+      "size_bytes": 49028,
+      "sha256": "20b4f4162684f7b3020b88ae7f48397b250262e651615c38f08e7b9fdc8c6f09",
+      "character_count": 28623,
+      "chunk_count": 19
+    },
+    {
+      "document_id": "8e846dff1c35df83",
+      "source_path": "implementation/실시/Chapter 3B Part 3.docx",
+      "file_name": "Chapter 3B Part 3.docx",
+      "size_bytes": 61682,
+      "sha256": "bf3b835cc605bffe60b4cda0d39aba8bcee05ba78bdfbf30d7cfaadc4fc56e17",
+      "character_count": 40225,
+      "chunk_count": 27
+    },
+    {
+      "document_id": "52bb80aefb533a50",
+      "source_path": "implementation/실시/Chapter 3B Part 4.docx",
+      "file_name": "Chapter 3B Part 4.docx",
+      "size_bytes": 70226,
+      "sha256": "9d00ff7111f55861a4553e46749be078d989300d16106705d92e34dcedc78ebd",
+      "character_count": 46516,
+      "chunk_count": 31
+    },
+    {
+      "document_id": "4b5e304dc6bd4625",
+      "source_path": "implementation/실시/Chapter 3B Part 5.docx",
+      "file_name": "Chapter 3B Part 5.docx",
+      "size_bytes": 76144,
+      "sha256": "2b2eb897b08db5d8a8861d0f5468fcc7a1081c99562b542f11a872f4bcf6a3b4",
+      "character_count": 55959,
+      "chunk_count": 37
+    },
+    {
+      "document_id": "4c2a12c3bb1fd07f",
+      "source_path": "implementation/실시/Chapter 3B Part 6.docx",
+      "file_name": "Chapter 3B Part 6.docx",
+      "size_bytes": 75413,
+      "sha256": "8d576830e4367f28f0eb98960ac1e04670cd3b2eeba8fdb1cce11cadd21f8923",
+      "character_count": 51178,
+      "chunk_count": 34
+    },
+    {
+      "document_id": "49e5a779a8c9708d",
+      "source_path": "implementation/실시/Chapter 3B Part 7.docx",
+      "file_name": "Chapter 3B Part 7.docx",
+      "size_bytes": 80692,
+      "sha256": "de4dae751dac60615aee4d5b7768d80982bebc16843aaec90d34814c920ca0ac",
+      "character_count": 61095,
+      "chunk_count": 40
+    },
+    {
+      "document_id": "9d6b72cc2d5c3da7",
+      "source_path": "implementation/실시/Chapter 3B Part 8.1.docx",
+      "file_name": "Chapter 3B Part 8.1.docx",
+      "size_bytes": 81464,
+      "sha256": "48898f90663c3aa0c4df96023962cab0643f12c56b69000b8e68323718526ed5",
+      "character_count": 46134,
+      "chunk_count": 30
+    },
+    {
+      "document_id": "fecc23f7e11c5879",
+      "source_path": "implementation/실시/Chapter 3B Part 8.2.docx",
+      "file_name": "Chapter 3B Part 8.2.docx",
+      "size_bytes": 75772,
+      "sha256": "19bbfb1ab9c9cc2c03597efb16181670ee907d4147dc31f46adfb0e4c5c94d65",
+      "character_count": 53806,
+      "chunk_count": 35
+    },
+    {
+      "document_id": "a2a873772e8fd4bf",
+      "source_path": "implementation/실시/Chapter 3B Part 8.docx",
+      "file_name": "Chapter 3B Part 8.docx",
+      "size_bytes": 28339,
+      "sha256": "04a7e4cc699b1ef707b8966df47e342fc2c2b771d1da42d67f9f637359b1ca78",
+      "character_count": 4009,
+      "chunk_count": 3
+    },
+    {
+      "document_id": "aa633529cc5e626b",
+      "source_path": "implementation/실시/Chapter 3B Part 9.1.docx",
+      "file_name": "Chapter 3B Part 9.1.docx",
+      "size_bytes": 73954,
+      "sha256": "4962c2754c489c979ed4ef970e5965fd4c212ca297d73e962df528f6928ea229",
+      "character_count": 48278,
+      "chunk_count": 32
+    },
+    {
+      "document_id": "4c25a6e4d1370ccb",
+      "source_path": "implementation/실시/Chapter 3B Part 9.docx",
+      "file_name": "Chapter 3B Part 9.docx",
+      "size_bytes": 73631,
+      "sha256": "28f5898f9820dc5a6edd3a3bf0e7df45710380ef29a88317d19bd7195efcd859",
+      "character_count": 48278,
+      "chunk_count": 32
+    },
+    {
+      "document_id": "c0ab3de6708db29a",
+      "source_path": "implementation/실시/Chapter 3C.Phase 1.docx",
+      "file_name": "Chapter 3C.Phase 1.docx",
+      "size_bytes": 46716,
+      "sha256": "4a27b311b812d501e8e8e97791d0e2b31f181b04292cb717652a8453b2614362",
+      "character_count": 31226,
+      "chunk_count": 21
+    },
+    {
+      "document_id": "c1ce5f70c7c2ec71",
+      "source_path": "implementation/실시/Chapter 3C.Phase 2.docx",
+      "file_name": "Chapter 3C.Phase 2.docx",
+      "size_bytes": 46537,
+      "sha256": "e9a665e7a3934cb8bf9cc8b68b05e40d99c90b08f16874c9a739bf0332aded77",
+      "character_count": 35081,
+      "chunk_count": 23
+    },
+    {
+      "document_id": "00efb84c9a528af2",
+      "source_path": "implementation/실시/Chapter 3C.Phase 3.docx",
+      "file_name": "Chapter 3C.Phase 3.docx",
+      "size_bytes": 53226,
+      "sha256": "cff66635fcc88a8b833185d8a77919af7ef77ecbec64432de5259bef3cf9dbb3",
+      "character_count": 39707,
+      "chunk_count": 26
+    },
+    {
+      "document_id": "c9ff93669848a685",
+      "source_path": "implementation/실시/Chapter 3D 2.docx",
+      "file_name": "Chapter 3D 2.docx",
+      "size_bytes": 47739,
+      "sha256": "db43508380f7c468a57e55cc3481b44681fa84794c102380348c4bba39bb482f",
+      "character_count": 36758,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "7409d4a02d6b7d4b",
+      "source_path": "implementation/실시/Chapter 3D 3.docx",
+      "file_name": "Chapter 3D 3.docx",
+      "size_bytes": 48565,
+      "sha256": "a28ba74d4c5f4c46b778c9735fe892db162246585d52a1d1a719033923286bd0",
+      "character_count": 39640,
+      "chunk_count": 26
+    },
+    {
+      "document_id": "e891a82465a5311e",
+      "source_path": "implementation/실시/Chapter 3D1.docx",
+      "file_name": "Chapter 3D1.docx",
+      "size_bytes": 47902,
+      "sha256": "7b59c46a8404c18e18aed9ac064a6bef10d003519df8806f9a85507c23efccf8",
+      "character_count": 32080,
+      "chunk_count": 21
+    },
+    {
+      "document_id": "94ec1f0f78770264",
+      "source_path": "implementation/실시/Chapter 3E 1.docx",
+      "file_name": "Chapter 3E 1.docx",
+      "size_bytes": 49978,
+      "sha256": "154e61ea95edca349acab8731396220160e48917ca3f37c4da47784d2617e72a",
+      "character_count": 35408,
+      "chunk_count": 23
+    },
+    {
+      "document_id": "f7e41a8943d89845",
+      "source_path": "implementation/실시/Chapter 3E 2.docx",
+      "file_name": "Chapter 3E 2.docx",
+      "size_bytes": 44036,
+      "sha256": "6aa00133696f566d6f90fd97e5e0214c0cd5034134b9ab973f7577b4a4447460",
+      "character_count": 33578,
+      "chunk_count": 22
+    },
+    {
+      "document_id": "8cf44ad7bc3d8619",
+      "source_path": "implementation/실시/Chapter 3E 3.docx",
+      "file_name": "Chapter 3E 3.docx",
+      "size_bytes": 49077,
+      "sha256": "3c2afe62a04b7d9467c76a049d4fd2acd0ebc2b6041e0e2a918df75020ab55bc",
+      "character_count": 41428,
+      "chunk_count": 27
+    },
+    {
+      "document_id": "aae9036649575b7e",
+      "source_path": "implementation/실시/Chapter 3F 1.docx",
+      "file_name": "Chapter 3F 1.docx",
+      "size_bytes": 45436,
+      "sha256": "ba43ea2807c6a9bb2e1a65207f35b76a805eac49ac2882d6e1016da50b7015b7",
+      "character_count": 33846,
+      "chunk_count": 22
+    },
+    {
+      "document_id": "a0f2057a217399fe",
+      "source_path": "implementation/실시/Chapter 3F 2.docx",
+      "file_name": "Chapter 3F 2.docx",
+      "size_bytes": 44975,
+      "sha256": "2fb7b3170a676bbdcb33bb73730ec5ec22598959ac2c6222a8afc87eb9205c37",
+      "character_count": 36230,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "7672bfd011748895",
+      "source_path": "implementation/실시/Chapter 3F 3.docx",
+      "file_name": "Chapter 3F 3.docx",
+      "size_bytes": 53185,
+      "sha256": "080937b297181c22391973c7b5e4a0590bfa816c8cebd6c23f96ef07ed6a5995",
+      "character_count": 45508,
+      "chunk_count": 30
+    },
+    {
+      "document_id": "20f1ade0f7223288",
+      "source_path": "implementation/실시/Chapter 3G 1.docx",
+      "file_name": "Chapter 3G 1.docx",
+      "size_bytes": 49479,
+      "sha256": "1fd1818a25d9987267dbad6ca257965535a6fbe03cf439a88817cbd0e7bdd202",
+      "character_count": 35615,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "6e472c6af23b9c5a",
+      "source_path": "implementation/실시/Chapter 3G 2.docx",
+      "file_name": "Chapter 3G 2.docx",
+      "size_bytes": 25975,
+      "sha256": "1b2ff677c90a928f22616bbaf134ffb4ad32fd051c154190ac92a091cf52f2a4",
+      "character_count": 3375,
+      "chunk_count": 3
+    },
+    {
+      "document_id": "053c4ff6d2d93c85",
+      "source_path": "implementation/실시/Chapter 3G 3.docx",
+      "file_name": "Chapter 3G 3.docx",
+      "size_bytes": 29953,
+      "sha256": "af3aa61a496ef2c78fecc5db85bbeb3d0e1191d36ab816e6294750ddd5d46aba",
+      "character_count": 4602,
+      "chunk_count": 3
+    },
+    {
+      "document_id": "82a03e4e835a283b",
+      "source_path": "implementation/실시/Chapter 3H 1.docx",
+      "file_name": "Chapter 3H 1.docx",
+      "size_bytes": 25938,
+      "sha256": "068f03fb3ccc5612b16a79ae884f9ff5fc70b0c7a00634cbf0c0a7e7d29178ad",
+      "character_count": 3768,
+      "chunk_count": 3
+    },
+    {
+      "document_id": "b3da3d51d900979c",
+      "source_path": "implementation/실시/Chapter 3H 2.docx",
+      "file_name": "Chapter 3H 2.docx",
+      "size_bytes": 61255,
+      "sha256": "cf46ab731595e3355c2f97f9edba42115611ddc45084ad3736c816779838a775",
+      "character_count": 18108,
+      "chunk_count": 12
+    },
+    {
+      "document_id": "a177ef1d140e3f84",
+      "source_path": "implementation/실시/Chapter 3K.docx",
+      "file_name": "Chapter 3K.docx",
+      "size_bytes": 68819,
+      "sha256": "8f60165f5861718e7e6c666d7f4d98206b46516dc151eab1f88119e22231c52c",
+      "character_count": 37733,
+      "chunk_count": 25
+    },
+    {
+      "document_id": "5f135b1a4a90bd11",
+      "source_path": "implementation/실시/Chapter 3L 1.docx",
+      "file_name": "Chapter 3L 1.docx",
+      "size_bytes": 30024,
+      "sha256": "e47eb88ae5d6f2a3cce73c18ed44e6ec0ed6b741b2166d6375b7d95bf9f5715e",
+      "character_count": 40142,
+      "chunk_count": 29
+    },
+    {
+      "document_id": "ae6db510daab3828",
+      "source_path": "implementation/실시/Chapter 3L.docx",
+      "file_name": "Chapter 3L.docx",
+      "size_bytes": 27584,
+      "sha256": "58ca6558327b854978d7754f071e5941f8c412c961db018e9b677c3fd81ebd48",
+      "character_count": 4130,
+      "chunk_count": 3
+    },
+    {
+      "document_id": "1ac457df72888a75",
+      "source_path": "implementation/실시/Chapter 3M.docx",
+      "file_name": "Chapter 3M.docx",
+      "size_bytes": 78539,
+      "sha256": "a50a0fa924ad4b1bf1bea89124ac9720627a59199979a385d54788587261e113",
+      "character_count": 47172,
+      "chunk_count": 31
+    },
+    {
+      "document_id": "2b796a539b79b6bb",
+      "source_path": "implementation/실시/Chapter 3N 1.docx",
+      "file_name": "Chapter 3N 1.docx",
+      "size_bytes": 59348,
+      "sha256": "34d40247c1be7c2aba58d8f3d5ee68cef39685083fe53d072e337563f681c870",
+      "character_count": 31659,
+      "chunk_count": 21
+    },
+    {
+      "document_id": "5af8cae9243e81da",
+      "source_path": "implementation/실시/Chapter 3N 2.docx",
+      "file_name": "Chapter 3N 2.docx",
+      "size_bytes": 65962,
+      "sha256": "e17a98f0137c62fa5c4d5352907373d0d350693260a3e3902fb2d5e2f1f4eedf",
+      "character_count": 34709,
+      "chunk_count": 23
+    },
+    {
+      "document_id": "a808fa092c99596a",
+      "source_path": "implementation/실시/Chapter 3N 3.docx",
+      "file_name": "Chapter 3N 3.docx",
+      "size_bytes": 35945,
+      "sha256": "242045a6501e7f3db8aa7ba26d9a1caa8f48add9a03f7cabe902503780f4ba4b",
+      "character_count": 6989,
+      "chunk_count": 5
+    },
+    {
+      "document_id": "31a1dc26bb6ddd53",
+      "source_path": "implementation/실시/Chapter 3N 4.1.docx",
+      "file_name": "Chapter 3N 4.1.docx",
+      "size_bytes": 53575,
+      "sha256": "5aa5b9d35f32a2666c8e0f45f8130c8ec0ca97cd522bc0164bdfc217d0731bf6",
+      "character_count": 12499,
+      "chunk_count": 8
+    },
+    {
+      "document_id": "3c997d5ae52f0c7a",
+      "source_path": "implementation/실시/Chapter 3N 4.10.docx",
+      "file_name": "Chapter 3N 4.10.docx",
+      "size_bytes": 46196,
+      "sha256": "6880bc3d8dd30caf0b9a5282a9521f7da226e6617c68d07c6e0041e3c40c6555",
+      "character_count": 26538,
+      "chunk_count": 18
+    },
+    {
+      "document_id": "aec0943da0bda8de",
+      "source_path": "implementation/실시/Chapter 3N 4.11.docx",
+      "file_name": "Chapter 3N 4.11.docx",
+      "size_bytes": 59053,
+      "sha256": "631ff4ce3e01d7e474f8658461bb1551bf6a5b997397db6e1d5a2359c46bdf30",
+      "character_count": 35468,
+      "chunk_count": 23
+    },
+    {
+      "document_id": "cc65a796678dbc0b",
+      "source_path": "implementation/실시/Chapter 3N 4.12.docx",
+      "file_name": "Chapter 3N 4.12.docx",
+      "size_bytes": 83451,
+      "sha256": "53fa783a611e4d9dbdefbd68a77dd301db1c357f8d3af704872327a319a061b9",
+      "character_count": 56653,
+      "chunk_count": 37
+    },
+    {
+      "document_id": "4bc6d3aac5d63b5d",
+      "source_path": "implementation/실시/Chapter 3N 4.13.docx",
+      "file_name": "Chapter 3N 4.13.docx",
+      "size_bytes": 22482,
+      "sha256": "56bace76f60bc0226e8f8b87680f56784b9ceb676698be059a883984d0d5d556",
+      "character_count": 5178,
+      "chunk_count": 4
+    },
+    {
+      "document_id": "4407b82416f27231",
+      "source_path": "implementation/실시/Chapter 3N 4.14.docx",
+      "file_name": "Chapter 3N 4.14.docx",
+      "size_bytes": 21985,
+      "sha256": "c7b5a0e2c9496a3025130b16b7893baf07ac0cd826412acdc3b2f0f68736bc13",
+      "character_count": 5051,
+      "chunk_count": 4
+    },
+    {
+      "document_id": "f075e88ee3354308",
+      "source_path": "implementation/실시/Chapter 3N 4.15.docx",
+      "file_name": "Chapter 3N 4.15.docx",
+      "size_bytes": 19652,
+      "sha256": "983792c3133fd87d34f7840d3903295aac4c916ef919b747c766851c89457bbd",
+      "character_count": 4181,
+      "chunk_count": 3
+    },
+    {
+      "document_id": "d5456a31bdd32fdf",
+      "source_path": "implementation/실시/Chapter 3N 4.16.docx",
+      "file_name": "Chapter 3N 4.16.docx",
+      "size_bytes": 335585,
+      "sha256": "5009cf29c81d9cdcffb912d06f0196277502ea4edc10b57713ca2b433584fa3e",
+      "character_count": 147514,
+      "chunk_count": 97
+    },
+    {
+      "document_id": "f586c4cdc6356afc",
+      "source_path": "implementation/실시/Chapter 3N 4.2.docx",
+      "file_name": "Chapter 3N 4.2.docx",
+      "size_bytes": 35318,
+      "sha256": "a922b0af6e5d034af53df239b9bfed4b01a481c6efef39b1630b2af8728f64fd",
+      "character_count": 6989,
+      "chunk_count": 5
+    },
+    {
+      "document_id": "f316cb83176b5ec3",
+      "source_path": "implementation/실시/Chapter 3N 4.3.docx",
+      "file_name": "Chapter 3N 4.3.docx",
+      "size_bytes": 34600,
+      "sha256": "e0db39297e14ba1b67f248f17d14dada057131d08f00e1d272603f803eea661e",
+      "character_count": 7113,
+      "chunk_count": 5
+    },
+    {
+      "document_id": "040b5a77bad9bfc8",
+      "source_path": "implementation/실시/Chapter 3N 4.4.docx",
+      "file_name": "Chapter 3N 4.4.docx",
+      "size_bytes": 70755,
+      "sha256": "9c9df4dd9cbe744aaf3943a57d3a5eb4a8d7e96e2543218258921a70aec9a29a",
+      "character_count": 23780,
+      "chunk_count": 16
+    },
+    {
+      "document_id": "27f147b66ff345c3",
+      "source_path": "implementation/실시/Chapter 3N 4.5.docx",
+      "file_name": "Chapter 3N 4.5.docx",
+      "size_bytes": 70970,
+      "sha256": "54ff109b7f293e99541abb5b8e76e2947832a646baa5a04202ce74f6d65384c9",
+      "character_count": 23970,
+      "chunk_count": 16
+    },
+    {
+      "document_id": "00db3b4794de2a6c",
+      "source_path": "implementation/실시/Chapter 3N 4.6.docx",
+      "file_name": "Chapter 3N 4.6.docx",
+      "size_bytes": 71439,
+      "sha256": "4c3d2493b9f0388db8fb1865470cebf79f328b849b769d90d0f3789a068ff85d",
+      "character_count": 23256,
+      "chunk_count": 16
+    },
+    {
+      "document_id": "0dca7a6c216f29e5",
+      "source_path": "implementation/실시/Chapter 3N 4.7.docx",
+      "file_name": "Chapter 3N 4.7.docx",
+      "size_bytes": 84718,
+      "sha256": "9b5e873849ab04d378bee1382f61991d05cee58521c54e90d06b8e471c3e2b00",
+      "character_count": 30249,
+      "chunk_count": 20
+    },
+    {
+      "document_id": "b12fb5afef016dd7",
+      "source_path": "implementation/실시/Chapter 3N 4.8.docx",
+      "file_name": "Chapter 3N 4.8.docx",
+      "size_bytes": 61988,
+      "sha256": "6efd0989e7143a3db0521c4f9bee85ef52a0b2340d0f754e47ce85fef3bf109d",
+      "character_count": 37024,
+      "chunk_count": 24
+    },
+    {
+      "document_id": "845ad66d7e2a36a2",
+      "source_path": "implementation/실시/Chapter 3N 4.9.docx",
+      "file_name": "Chapter 3N 4.9.docx",
+      "size_bytes": 61406,
+      "sha256": "4219760a87ee56a4bdaba4fba3b1f3da959b3f5195b7938d72827f9aa646aa7b",
+      "character_count": 35063,
+      "chunk_count": 23
+    },
+    {
+      "document_id": "3953d464d8fc893d",
+      "source_path": "implementation/실시/Chapter 3N 4.docx",
+      "file_name": "Chapter 3N 4.docx",
+      "size_bytes": 33402,
+      "sha256": "d385b398104deaf5127736406df9090fefcc5096e893c64ecd7efebfc71fa52f",
+      "character_count": 6085,
+      "chunk_count": 4
+    },
+    {
+      "document_id": "4fe7fb88ba55c839",
+      "source_path": "implementation/실시/Chapter 3N.docx",
+      "file_name": "Chapter 3N.docx",
+      "size_bytes": 19052,
+      "sha256": "18023149b53662fdfd1487b6ce6a65f0070a8bfceea73aa655b0986960cf1f05",
+      "character_count": 2514,
+      "chunk_count": 2
+    }
+  ]
+}

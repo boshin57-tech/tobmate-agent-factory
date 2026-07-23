@@ -1,0 +1,199 @@
+{
+  "batches": [
+    {
+      "section_start": 2601,
+      "section_end": 2610,
+      "title": "목적·범위 및 프레임워크 개요",
+      "topics": [
+        "목적/범위 정의(본 장 3O의 적용 대상, 비적용 대상)",
+        "Gold Liquidity Pool(LP) 프레임워크 구성요소 개요(contracts/modules)",
+        "Principal Ownership NFT vs Economic-utilization FT 분리 원칙의 LP 적용",
+        "Verified physical reserve 선행-발행(issuance)과 유동성 공급의 관계",
+        "Business Rule Validation(BRV) 및 Execution Authorization(EA) 게이트 개요",
+        "결정론적 상태(canonical deterministic state) 및 이벤트/로그 원칙",
+        "감사(audit)·추적(traceability)·분리보관(segregation) 요구사항 개요"
+      ],
+      "dependencies": [
+        "Master Constitution 1~10",
+        "terminology.md [REFERENCE_REQUIRED]",
+        "section_index.md [REFERENCE_REQUIRED]",
+        "object_registry.md [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2611,
+      "section_end": 2620,
+      "title": "LP 객체모델 및 계정/금고(Reserve/Treasury) 분리",
+      "topics": [
+        "LP 관련 핵심 객체(POOL, POSITION, SHARE, FEE, ORACLE_REF) 정의",
+        "자산 분리: Treasury/Insurance Reserve/Protocol Revenue/User Assets 분리 매핑",
+        "Reserve backing 상태와 LP 가용 유동성의 분리(회계적/상태적 분리)",
+        "권한 경계: 관리자(admin), 운영자(operator), 감사자(auditor), 사용자(user)",
+        "정산 단위(denomination) 및 소수점/반올림 결정론 규칙",
+        "상태 저장소(Storage) 키 설계 및 충돌 방지 네이밍"
+      ],
+      "dependencies": [
+        "2601-2610",
+        "object_registry.md [REFERENCE_REQUIRED]",
+        "terminology.md [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2621,
+      "section_end": 2630,
+      "title": "유동성 공급(Add Liquidity) 상태전이 및 검증",
+      "topics": [
+        "Add Liquidity 요청→검증→승인→실행→확정(state transition) 플로우",
+        "입금 자산 유형(FT)과 LP 지분(share) 발행/기록 규칙",
+        "원금(Principal) NFT 불변: 원금 소유권은 LP 작업으로 묵시적 이전/소각 금지",
+        "BRV 항목: 잔고, 허용 자산, 풀 상태, 한도(limit), 수수료 정책",
+        "EA 항목: 서명자/권한, 다중서명(multisig) 또는 정책 엔진(policy engine) 연계",
+        "실패 처리: 부분 실패 금지/원자성(atomicity)·롤백·재시도 규칙",
+        "감사 로그: 입력, 계산결과, 발행된 share, 참조 오라클, 블록결정성"
+      ],
+      "dependencies": [
+        "2611-2620",
+        "Business Rule Validation & Execution Authorization 모듈 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2631,
+      "section_end": 2640,
+      "title": "유동성 회수(Remove Liquidity)·상환/인출 정산",
+      "topics": [
+        "Remove Liquidity 요청→검증→승인→실행→확정 플로우",
+        "지분(share) 소각/burn 및 반환 자산 계산 규칙",
+        "Reserve/Pool 자산 고갈 방지 및 지연 인출(queued withdrawal) 정책",
+        "BRV: 최소 잔존 유동성, 풀 불변식, 사용자 지분 증명, 수수료/페널티",
+        "EA: 대량 인출/위기 모드(emergency mode) 승인 조건",
+        "실패 처리: 유동성 부족, 슬리피지 초과, 만기/락업 위반",
+        "추적성: settlement, burn, redemption 연계 이벤트 모델"
+      ],
+      "dependencies": [
+        "2621-2630",
+        "Redemption/Burn/Settlement 모듈 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2641,
+      "section_end": 2650,
+      "title": "스왑(Swap)·가격결정·슬리피지 제어",
+      "topics": [
+        "Swap 요청→견적(quote)→검증→승인→체결→확정 플로우",
+        "가격결정 함수(AMM curve) 및 결정론적 산술(precision/rounding) 규칙",
+        "슬리피지 한도, MEV 완화(순서/유효기간), 최소수령(minOut) 검증",
+        "오라클(oracle) 참조 정책 및 조작 방지(anti-manipulation) 검증",
+        "BRV: 풀 상태, 입력/출력 자산 화이트리스트, 한도, 수수료",
+        "실패 처리: 견적 만료, 오라클 불일치, 유동성 부족",
+        "감사: 체결 전후 풀 잔고, 가격, 수수료, 오라클 스냅샷 기록"
+      ],
+      "dependencies": [
+        "2611-2620",
+        "Price/Oracle 모듈 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2651,
+      "section_end": 2660,
+      "title": "수수료(Fee)·프로토콜 수익(Revenue)·분리보관 정산",
+      "topics": [
+        "LP 수수료 vs 프로토콜 수익 vs 보험/리스크 준비금 분리 규칙",
+        "수수료 누적(accrual) 상태모델 및 정산 주기(epochs) 정의",
+        "수수료 분배(distribution): LP 지분 기반 vs 정책 기반",
+        "Constitution 7: 모든 경제적 보상은 정의되고 감사 가능한 가치원천에 연동",
+        "BRV: 수수료율 변경, 상한/하한, 소급 금지, 이해상충 방지",
+        "EA: 수수료 파라미터 변경 승인/거버넌스 게이트",
+        "감사: 수익원 태깅(tagging), 금고별 이동 경로(trace), 리포팅"
+      ],
+      "dependencies": [
+        "2641-2650",
+        "Treasury/Revenue Segregation 모듈 [REFERENCE_REQUIRED]",
+        "Governance/Parameter Management 모듈 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2661,
+      "section_end": 2670,
+      "title": "리스크·보험(Insurance)·위기 모드(Emergency) 및 복구",
+      "topics": [
+        "보험 준비금(insurance reserve) 트리거 조건 및 사용 범위",
+        "풀 손실 이벤트 분류: 오라클 실패, 급변동, 스마트컨트랙트 결함",
+        "Emergency mode: 스왑 중지, 인출 큐, 파라미터 고정(freeze)",
+        "복구(recovery) 절차: 상태 스냅샷, 재개 조건, 손실 정산 원칙",
+        "BRV: 보험금 사용 한도, 사용자 자산/프로토콜 자산 혼용 금지",
+        "EA: 비상 승인 체계(다중서명/시간지연 timelock) 요구",
+        "감사: 비상 이벤트 타임라인, 의사결정 증빙, 사후 정합성 검증"
+      ],
+      "dependencies": [
+        "2651-2660",
+        "Insurance Reserve 모듈 [REFERENCE_REQUIRED]",
+        "Emergency Governance 모듈 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2671,
+      "section_end": 2680,
+      "title": "상태결정성·정합성·동시성 제어(Determinism & Concurrency)",
+      "topics": [
+        "Canonical ledger state 결정론 보장: 연산 순서, 정렬, 반올림 규칙",
+        "재진입(reentrancy)·이중지불(double spend) 방지 및 락(lock) 모델",
+        "동일 블록 내 다중 트랜잭션 경합 규칙(예: nonce/sequence, pool-level mutex)",
+        "체인 재구성(reorg) 및 최종성(finality) 대응: 이벤트 확정 기준",
+        "BRV: 상태 버전(version)·낙관적 잠금(optimistic locking) 검증",
+        "실패 처리: 경합 실패, 버전 불일치, 재시도/백오프(backoff)",
+        "감사: 결정론 위반 탐지 지표 및 재현 가능한 실행 트레이스"
+      ],
+      "dependencies": [
+        "2621-2670",
+        "Ledger/State Engine 모듈 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2681,
+      "section_end": 2690,
+      "title": "감사·추적·보고(Traceability & Reporting) 프레임워크",
+      "topics": [
+        "LP 전 트랜잭션 타입별 감사 이벤트 스키마(event schema)",
+        "물리 준비금 검증(verified reserve)과 LP 상태 연결을 위한 증빙 포인터(pointer)",
+        "소각(burn)/상환(redemption)/배송(delivery)/정산(settlement) 추적 연결 규칙",
+        "보고서 산출: 금고별 잔고, 수익원별 집계, 사용자별 포지션",
+        "BRV/EA 결과의 영구 기록 및 감사자 조회 경로",
+        "개인정보/민감정보 최소화 원칙과 해시 기반 증빙",
+        "감사 실패/누락 탐지 및 보정 절차"
+      ],
+      "dependencies": [
+        "2601-2680",
+        "Audit Log/Reporting 모듈 [REFERENCE_REQUIRED]",
+        "Reserve Attestation 모듈 [REFERENCE_REQUIRED]",
+        "invariant_registry.md [REFERENCE_REQUIRED]"
+      ]
+    },
+    {
+      "section_start": 2691,
+      "section_end": 2700,
+      "title": "완료 불변식(Completion Invariants) 및 다음 장 전이(Transition)",
+      "topics": [
+        "본 장 적용 불변식 요약: 준비금 선행, 원금 NFT 불침해, 자산 분리, 결정론",
+        "유동성 작업 전이별 최소 불변식 체크리스트(ADD/REMOVE/SWAP/FEE/EMERGENCY)",
+        "모듈 확장(backward-compatible) 시 헌법 불변식 보존 규칙",
+        "성공/실패 종료 상태의 표준화(terminal states) 및 재처리(replay) 규칙",
+        "다음 장로의 전이 요구사항: LP 외부 모듈(거버넌스/배송/상환/회계) 인터페이스 고정",
+        "미해결 참조 정리 및 [REFERENCE_REQUIRED] 항목 목록화"
+      ],
+      "dependencies": [
+        "2601-2690",
+        "invariant_registry.md [REFERENCE_REQUIRED]",
+        "section_index.md [REFERENCE_REQUIRED]",
+        "다음 장(Chapter 3P) 제목/범위 [REFERENCE_REQUIRED]"
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from agents import Agent, Runner
 
 from tobmate_agents.common import ROOT, WORKSPACE, load_context, load_project_config, model_name
+from tobmate_agents.source_rag import get_source_context
 
 load_dotenv(ROOT / ".env")
 
@@ -120,7 +121,17 @@ def save_batch_checkpoint(
     )
 
 async def write_batch(agents: dict[str, Agent], chapter: dict[str, Any], batch: dict[str, Any]) -> Path:
+    topic_text = " ".join(str(x) for x in batch.get("topics", []))
+    writer_context = get_source_context(
+        f'{chapter["code"]} {chapter["title"]} {batch.get("title", "")} {topic_text}',
+        limit=10,
+        max_characters=14000,
+    )
+
     prompt = f"""
+REFERENCE SOURCE DOCUMENTS:
+{writer_context}
+
 CHAPTER:
 {json.dumps(chapter, ensure_ascii=False, indent=2)}
 
@@ -133,7 +144,16 @@ Draft this batch.
     draft_path = WORKSPACE / "drafts" / f'{chapter["code"]}_{batch["section_start"]}_{batch["section_end"]}.md'
     draft_path.write_text(draft, encoding="utf-8")
 
+    review_context = get_source_context(
+        f'{chapter["code"]} {chapter["title"]} {batch.get("title", "")} review invariants audit failure ownership reserve',
+        limit=8,
+        max_characters=12000,
+    )
+
     review_prompt = f"""
+REFERENCE SOURCE DOCUMENTS:
+{review_context}
+
 Review this draft.
 
 CHAPTER:
@@ -147,6 +167,9 @@ DRAFT:
     review_path.write_text(review, encoding="utf-8")
 
     edit_prompt = f"""
+REFERENCE SOURCE DOCUMENTS:
+{writer_context}
+
 Correct the draft using the review.
 
 DRAFT:
@@ -177,7 +200,16 @@ async def run_chapter(chapter_code: str) -> Path:
     context = load_context()
     agents = build_agents(context)
 
+    planner_context = get_source_context(
+        f'{chapter["code"]} {chapter["title"]} architecture framework objects states invariants dependencies',
+        limit=10,
+        max_characters=16000,
+    )
+
     plan_prompt = f"""
+REFERENCE SOURCE DOCUMENTS:
+{planner_context}
+
 Plan this chapter:
 {json.dumps(chapter, ensure_ascii=False, indent=2)}
 
@@ -187,7 +219,13 @@ The final batch must contain completion invariants and transition to the next ch
 Return a JSON object with a "batches" array.
 Each batch must include section_start, section_end, title, topics, dependencies.
 """
-    raw_plan = await run_agent(agents["planner"], plan_prompt)
+    print(f"[PLANNER START] {chapter_code}", flush=True)
+    raw_plan = await asyncio.wait_for(
+        run_agent(agents["planner"], plan_prompt),
+        timeout=600,
+    )
+    print(f"[PLANNER DONE] {chapter_code}", flush=True)
+
     plan_path = WORKSPACE / "final" / f"{chapter_code}_plan.json"
     plan_path.write_text(raw_plan, encoding="utf-8")
 
@@ -200,13 +238,49 @@ Each batch must include section_start, section_end, title, topics, dependencies.
     semaphore = asyncio.Semaphore(max_parallel)
 
     async def guarded(batch):
+        batch_name = (
+            batch.get("title")
+            or f'{batch.get("section_start", "?")}-{batch.get("section_end", "?")}'
+        )
+
+        print(f"[BATCH WAIT] {batch_name}", flush=True)
+
         async with semaphore:
-            return await write_batch(agents, chapter, batch)
+            print(f"[BATCH START] {batch_name}", flush=True)
+
+            try:
+                result = await asyncio.wait_for(
+                    write_batch(agents, chapter, batch),
+                    timeout=1800,
+                )
+                print(f"[BATCH DONE] {batch_name}: {result}", flush=True)
+                return result
+
+            except asyncio.TimeoutError:
+                print(f"[BATCH TIMEOUT] {batch_name}", flush=True)
+                raise
+
+            except Exception as exc:
+                print(
+                    f"[BATCH ERROR] {batch_name}: "
+                    f"{type(exc).__name__}: {exc}",
+                    flush=True,
+                )
+                raise
 
     approved_paths = await asyncio.gather(*(guarded(b) for b in plan["batches"]))
     merged_input = "\n\n".join(p.read_text(encoding="utf-8") for p in approved_paths)
 
+    integration_context = get_source_context(
+        f'{chapter["code"]} {chapter["title"]} canonical architecture consistency terminology invariants',
+        limit=10,
+        max_characters=16000,
+    )
+
     final_prompt = f"""
+REFERENCE SOURCE DOCUMENTS:
+{integration_context}
+
 Merge the following approved batches into the canonical Chapter {chapter_code}.
 
 CHAPTER METADATA:
@@ -215,7 +289,18 @@ CHAPTER METADATA:
 APPROVED BATCHES:
 {merged_input}
 """
-    final = await run_agent(agents["integrator"], final_prompt)
+    print(f"[INTEGRATOR START] {chapter_code}", flush=True)
+
+    try:
+        final = await asyncio.wait_for(
+            run_agent(agents["integrator"], final_prompt),
+            timeout=1800,
+        )
+        print(f"[INTEGRATOR DONE] {chapter_code}", flush=True)
+
+    except asyncio.TimeoutError:
+        print(f"[INTEGRATOR TIMEOUT] {chapter_code}", flush=True)
+        raise
     final_path = WORKSPACE / "final" / f"{chapter_code}_{chapter['title'].replace(' ', '_')}.md"
     final_path.write_text(final, encoding="utf-8")
     return final_path
