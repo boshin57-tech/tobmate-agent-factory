@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import time
-from collections.abc import Sequence
 from contextlib import AsyncExitStack
 from typing import Any
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+import httpx
+from mcp import ClientSession
+from mcp.client.streamable_http import (
+    streamable_http_client,
+)
 
 from .mcp_context import MCPContextOperations
 from .mcp_context_models import (
@@ -35,32 +36,33 @@ from .models import (
 )
 
 
-class MCPClientError(RuntimeError):
-    """Raised when an MCP client operation fails."""
+class MCPHTTPClientError(RuntimeError):
+    """Raised when an MCP HTTP client operation fails."""
 
 
-class MCPStdioClient:
+class MCPHTTPClient:
     def __init__(
         self,
         config: MCPServerConfig,
     ) -> None:
         if (
             config.transport
-            is not ExternalToolTransport.MCP_STDIO
+            is not ExternalToolTransport.MCP_HTTP
         ):
             raise ValueError(
-                "MCPStdioClient requires MCP_STDIO transport."
+                "MCPHTTPClient requires MCP_HTTP transport."
             )
 
-        if not config.command:
+        if not config.url:
             raise ValueError(
-                "MCP stdio server command is required."
+                "MCP HTTP server URL is required."
             )
 
         self.config = config
         self._stack: AsyncExitStack | None = None
         self._session: ClientSession | None = None
         self._initialized = False
+        self._session_id: str | None = None
 
     @property
     def connected(self) -> bool:
@@ -69,29 +71,51 @@ class MCPStdioClient:
             and self._initialized
         )
 
+    @property
+    def session_id(self) -> str | None:
+        return self._session_id
+
     async def connect(self) -> None:
         if self.connected:
             return
 
-        environment = {
-            **os.environ,
-            **self.config.environment,
-        }
-
-        parameters = StdioServerParameters(
-            command=self.config.command or "",
-            args=list(self.config.arguments),
-            env=environment,
-        )
-
         stack = AsyncExitStack()
 
+        timeout = httpx.Timeout(
+            self.config.timeout_seconds
+        )
+
+        http_client = httpx.AsyncClient(
+            headers=dict(self.config.headers),
+            timeout=timeout,
+            follow_redirects=False,
+        )
+
+        await stack.enter_async_context(
+            http_client
+        )
+
         try:
-            read_stream, write_stream = (
+            transport_result = (
                 await stack.enter_async_context(
-                    stdio_client(parameters)
+                    streamable_http_client(
+                        self.config.url or "",
+                        http_client=http_client,
+                    )
                 )
             )
+
+            if len(transport_result) == 3:
+                (
+                    read_stream,
+                    write_stream,
+                    get_session_id,
+                ) = transport_result
+            else:
+                read_stream, write_stream = (
+                    transport_result
+                )
+                get_session_id = None
 
             session = await stack.enter_async_context(
                 ClientSession(
@@ -105,16 +129,25 @@ class MCPStdioClient:
                 timeout=self.config.timeout_seconds,
             )
 
+            session_id = None
+
+            if callable(get_session_id):
+                try:
+                    session_id = get_session_id()
+                except Exception:
+                    session_id = None
+
         except Exception as exc:
             await stack.aclose()
 
-            raise MCPClientError(
-                "Unable to initialize MCP stdio server "
+            raise MCPHTTPClientError(
+                "Unable to initialize MCP HTTP server "
                 f"{self.config.server_id}: {exc}"
             ) from exc
 
         self._stack = stack
         self._session = session
+        self._session_id = session_id
         self._initialized = True
 
     async def close(self) -> None:
@@ -122,6 +155,7 @@ class MCPStdioClient:
 
         self._session = None
         self._stack = None
+        self._session_id = None
         self._initialized = False
 
         if stack is not None:
@@ -129,7 +163,7 @@ class MCPStdioClient:
 
     async def __aenter__(
         self,
-    ) -> "MCPStdioClient":
+    ) -> "MCPHTTPClient":
         await self.connect()
         return self
 
@@ -203,8 +237,8 @@ class MCPStdioClient:
                 timeout=self.config.timeout_seconds,
             )
         except Exception as exc:
-            raise MCPClientError(
-                f"MCP ping failed: {exc}"
+            raise MCPHTTPClientError(
+                f"MCP HTTP ping failed: {exc}"
             ) from exc
 
         return True
@@ -214,26 +248,38 @@ class MCPStdioClient:
     ) -> list[MCPToolDefinition]:
         session = self._require_session()
 
-        try:
-            response = await asyncio.wait_for(
-                session.list_tools(),
-                timeout=self.config.timeout_seconds,
-            )
-        except Exception as exc:
-            raise MCPClientError(
-                f"MCP tool discovery failed: {exc}"
-            ) from exc
-
         definitions: list[MCPToolDefinition] = []
+        cursor: str | None = None
 
-        for tool in response.tools:
-            payload = self._model_dump(tool)
-
-            definitions.append(
-                MCPToolDefinition.model_validate(
-                    payload
+        while True:
+            try:
+                response = await asyncio.wait_for(
+                    session.list_tools(
+                        cursor=cursor
+                    ),
+                    timeout=self.config.timeout_seconds,
                 )
+            except Exception as exc:
+                raise MCPHTTPClientError(
+                    "MCP HTTP tool discovery failed: "
+                    f"{exc}"
+                ) from exc
+
+            for tool in response.tools:
+                definitions.append(
+                    MCPToolDefinition.model_validate(
+                        self._model_dump(tool)
+                    )
+                )
+
+            cursor = getattr(
+                response,
+                "next_cursor",
+                None,
             )
+
+            if cursor is None:
+                break
 
         return definitions
 
@@ -260,7 +306,7 @@ class MCPStdioClient:
                     default_risk,
                 ),
                 transport=(
-                    ExternalToolTransport.MCP_STDIO
+                    ExternalToolTransport.MCP_HTTP
                 ),
             ).model_copy(
                 update={
@@ -298,37 +344,34 @@ class MCPStdioClient:
                 timeout=self.config.timeout_seconds,
             )
 
-            raw = self._model_dump(response)
-            mcp_result = (
-                MCPToolCallResult.model_validate(raw)
+            result = MCPToolCallResult.model_validate(
+                self._model_dump(response)
             )
-
-            duration_ms = (
-                time.perf_counter() - started
-            ) * 1000.0
 
             return ExternalToolResult(
                 call_id=call.call_id,
                 tool_id=call.tool_id,
                 status=(
                     ToolExecutionStatus.FAILED
-                    if mcp_result.isError
+                    if result.isError
                     else ToolExecutionStatus.SUCCEEDED
                 ),
-                content=(
-                    mcp_result.normalized_content()
-                ),
-                is_error=mcp_result.isError,
+                content=result.normalized_content(),
+                is_error=result.isError,
                 error=(
-                    self._error_text(mcp_result)
-                    if mcp_result.isError
+                    self._error_text(result)
+                    if result.isError
                     else None
                 ),
-                duration_ms=duration_ms,
+                duration_ms=(
+                    time.perf_counter() - started
+                )
+                * 1000.0,
                 metadata={
                     "server_id": self.config.server_id,
                     "remote_tool_name": tool_name,
-                    "_meta": mcp_result.meta,
+                    "session_id": self.session_id,
+                    "_meta": result.meta,
                 },
             )
 
@@ -339,7 +382,7 @@ class MCPStdioClient:
                 status=ToolExecutionStatus.TIMED_OUT,
                 is_error=True,
                 error=(
-                    "MCP tool execution exceeded "
+                    "MCP HTTP tool execution exceeded "
                     f"{self.config.timeout_seconds} seconds."
                 ),
                 duration_ms=(
@@ -349,6 +392,7 @@ class MCPStdioClient:
                 metadata={
                     "server_id": self.config.server_id,
                     "remote_tool_name": tool_name,
+                    "session_id": self.session_id,
                 },
             )
 
@@ -366,6 +410,7 @@ class MCPStdioClient:
                 metadata={
                     "server_id": self.config.server_id,
                     "remote_tool_name": tool_name,
+                    "session_id": self.session_id,
                 },
             )
 
@@ -388,8 +433,8 @@ class MCPStdioClient:
         self,
     ) -> ClientSession:
         if not self.connected or self._session is None:
-            raise MCPClientError(
-                "MCP client is not connected."
+            raise MCPHTTPClientError(
+                "MCP HTTP client is not connected."
             )
 
         return self._session
@@ -406,7 +451,7 @@ class MCPStdioClient:
             if name:
                 return name
 
-        raise MCPClientError(
+        raise MCPHTTPClientError(
             "Unable to resolve remote MCP tool name "
             f"from tool ID: {tool_id}"
         )
@@ -423,13 +468,13 @@ class MCPStdioClient:
         elif isinstance(value, dict):
             payload = value
         else:
-            raise MCPClientError(
+            raise MCPHTTPClientError(
                 "MCP SDK returned an unsupported "
                 f"response type: {type(value)!r}"
             )
 
         if not isinstance(payload, dict):
-            raise MCPClientError(
+            raise MCPHTTPClientError(
                 "MCP response must be an object."
             )
 
@@ -448,4 +493,4 @@ class MCPStdioClient:
         if texts:
             return "\n".join(texts)
 
-        return "MCP tool returned an error result."
+        return "MCP HTTP tool returned an error result."
