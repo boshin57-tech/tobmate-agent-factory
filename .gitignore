@@ -13,3 +13,15 @@ workspace/reviews/
 workspace/checkpoints/
 
 .DS_Store
+
+# AF-Core local runtime
+.venv-af-core/
+.af_checkpoint_audit/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Existing local workspace backup
+workspace-backup-20260723-020124/
