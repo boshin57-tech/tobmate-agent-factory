@@ -63,8 +63,8 @@ class GitClient:
 
         result = GitResult(
             args=tuple(args),
-            stdout=completed.stdout.strip(),
-            stderr=completed.stderr.strip(),
+            stdout=completed.stdout.rstrip("\r\n"),
+            stderr=completed.stderr.rstrip("\r\n"),
             returncode=completed.returncode,
         )
 
