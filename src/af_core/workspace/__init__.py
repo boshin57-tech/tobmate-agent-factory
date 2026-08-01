@@ -1,0 +1,1 @@
+"""Isolated Git worktree management."""
