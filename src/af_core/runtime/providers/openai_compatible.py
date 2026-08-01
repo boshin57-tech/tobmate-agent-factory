@@ -18,6 +18,7 @@ from af_core.runtime.provider_protocol import (
     ProviderHealthStatus,
     ProviderMessage,
     ProviderResponse,
+    ProviderToolCall,
 )
 
 from .http_client import (
@@ -268,6 +269,81 @@ class OpenAICompatibleAdapter:
 
         return response.payload, response.headers
 
+    def _normalize_tool_calls(
+        self,
+        raw_tool_calls: list[dict[str, Any]],
+    ) -> list[ProviderToolCall]:
+        normalized: list[ProviderToolCall] = []
+
+        for index, item in enumerate(
+            raw_tool_calls
+        ):
+            if not isinstance(item, dict):
+                continue
+
+            function = item.get("function") or {}
+
+            if not isinstance(function, dict):
+                continue
+
+            name = function.get("name")
+
+            if not isinstance(name, str) or not name:
+                continue
+
+            raw_arguments = function.get(
+                "arguments",
+                {},
+            )
+
+            if isinstance(raw_arguments, str):
+                try:
+                    arguments = json.loads(
+                        raw_arguments
+                    )
+                except json.JSONDecodeError:
+                    arguments = {
+                        "__raw_arguments__": (
+                            raw_arguments
+                        ),
+                    }
+            elif isinstance(raw_arguments, dict):
+                arguments = dict(raw_arguments)
+            else:
+                arguments = {
+                    "__raw_arguments__": (
+                        raw_arguments
+                    ),
+                }
+
+            if not isinstance(arguments, dict):
+                arguments = {
+                    "__value__": arguments,
+                }
+
+            call_id = (
+                item.get("id")
+                or item.get("call_id")
+                or (
+                    "openai_compatible_call_"
+                    f"{index + 1}"
+                )
+            )
+
+            normalized.append(
+                ProviderToolCall(
+                    call_id=str(call_id),
+                    tool_name=name,
+                    arguments=arguments,
+                    provider_format=(
+                        "OPENAI_COMPATIBLE"
+                    ),
+                    raw=dict(item),
+                )
+            )
+
+        return normalized
+
     def _normalize_response(
         self,
         *,
@@ -348,6 +424,35 @@ class OpenAICompatibleAdapter:
             or headers.get("X-Request-Id")
         )
 
+        raw_tool_calls: list[
+            dict[str, Any]
+        ] = []
+
+        choices = payload.get("choices") or []
+
+        if isinstance(choices, list) and choices:
+            first_choice = choices[0]
+
+            if isinstance(first_choice, dict):
+                message = first_choice.get(
+                    "message"
+                ) or {}
+
+                if isinstance(message, dict):
+                    candidate_calls = message.get(
+                        "tool_calls"
+                    ) or []
+
+                    if isinstance(
+                        candidate_calls,
+                        list,
+                    ):
+                        raw_tool_calls = [
+                            item
+                            for item in candidate_calls
+                            if isinstance(item, dict)
+                        ]
+
         return ProviderResponse(
             provider_id=self.provider_id,
             model_id=str(
@@ -360,6 +465,9 @@ class OpenAICompatibleAdapter:
                 else None
             ),
             usage=usage,
+            tool_calls=self._normalize_tool_calls(
+                raw_tool_calls
+            ),
             metadata={
                 "finish_reason": first.get(
                     "finish_reason"

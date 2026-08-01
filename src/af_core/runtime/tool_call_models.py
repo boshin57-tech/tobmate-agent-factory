@@ -5,6 +5,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from .provider_protocol import ProviderToolCall
+
 from af_core.tools.models import (
     ExternalToolCall,
     ExternalToolResult,
@@ -34,6 +36,44 @@ class NormalizedToolCall(BaseModel):
     raw: dict[str, Any] = Field(
         default_factory=dict
     )
+
+    @classmethod
+    def from_provider_tool_call(
+        cls,
+        value: ProviderToolCall,
+        *,
+        provider_id: str | None = None,
+        model_id: str | None = None,
+    ) -> "NormalizedToolCall":
+        try:
+            provider_format = ProviderToolCallFormat(
+                value.provider_format
+            )
+        except ValueError:
+            provider_format = (
+                ProviderToolCallFormat.GENERIC
+            )
+
+        return cls(
+            call_id=value.call_id,
+            tool_name=value.tool_name,
+            arguments=dict(value.arguments),
+            provider_format=provider_format,
+            provider_id=provider_id,
+            model_id=model_id,
+            raw=dict(value.raw),
+        )
+
+    def to_provider_tool_call(
+        self,
+    ) -> ProviderToolCall:
+        return ProviderToolCall(
+            call_id=self.call_id,
+            tool_name=self.tool_name,
+            arguments=dict(self.arguments),
+            provider_format=self.provider_format.value,
+            raw=dict(self.raw),
+        )
 
     def to_external_call(
         self,

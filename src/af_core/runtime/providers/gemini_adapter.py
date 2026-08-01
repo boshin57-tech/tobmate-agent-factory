@@ -18,6 +18,7 @@ from af_core.runtime.provider_protocol import (
     ProviderHealthStatus,
     ProviderMessage,
     ProviderResponse,
+    ProviderToolCall,
 )
 
 from .http_client import (
@@ -326,6 +327,54 @@ class GeminiAdapter:
 
         return headers
 
+    def _normalize_function_calls(
+        self,
+        function_calls: list[dict[str, Any]],
+    ) -> list[ProviderToolCall]:
+        normalized: list[ProviderToolCall] = []
+
+        for index, item in enumerate(function_calls):
+            function = item.get(
+                "functionCall",
+                item,
+            )
+
+            if not isinstance(function, dict):
+                continue
+
+            name = function.get("name")
+
+            if not isinstance(name, str) or not name:
+                continue
+
+            arguments = function.get(
+                "args",
+                {},
+            )
+
+            if not isinstance(arguments, dict):
+                arguments = {
+                    "__value__": arguments,
+                }
+
+            call_id = (
+                item.get("id")
+                or function.get("id")
+                or f"gemini_call_{index + 1}"
+            )
+
+            normalized.append(
+                ProviderToolCall(
+                    call_id=str(call_id),
+                    tool_name=name,
+                    arguments=dict(arguments),
+                    provider_format="GEMINI",
+                    raw=dict(item),
+                )
+            )
+
+        return normalized
+
     def _normalize_response(
         self,
         *,
@@ -442,6 +491,9 @@ class GeminiAdapter:
             content=content,
             request_id=request_id,
             usage=usage,
+            tool_calls=self._normalize_function_calls(
+                function_calls
+            ),
             metadata={
                 "finish_reason": first.get(
                     "finishReason"

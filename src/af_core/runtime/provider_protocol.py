@@ -30,6 +30,18 @@ class ProviderHealthStatus(StrEnum):
     UNKNOWN = "UNKNOWN"
 
 
+class ProviderToolCall(BaseModel):
+    call_id: str
+    tool_name: str
+    arguments: dict[str, Any] = Field(
+        default_factory=dict
+    )
+    provider_format: str = "GENERIC"
+    raw: dict[str, Any] = Field(
+        default_factory=dict
+    )
+
+
 class ProviderMessage(BaseModel):
     role: str
     content: str
@@ -55,7 +67,14 @@ class ProviderResponse(BaseModel):
     usage: NormalizedTokenUsage = Field(
         default_factory=NormalizedTokenUsage
     )
+    tool_calls: list[ProviderToolCall] = Field(
+        default_factory=list
+    )
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @property
+    def has_tool_calls(self) -> bool:
+        return bool(self.tool_calls)
 
 
 class ProviderHealth(BaseModel):

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import time
 from collections.abc import Sequence
 from typing import Any, TypeVar
@@ -17,6 +19,7 @@ from af_core.runtime.provider_protocol import (
     ProviderHealthStatus,
     ProviderMessage,
     ProviderResponse,
+    ProviderToolCall,
 )
 
 from .http_client import (
@@ -304,6 +307,68 @@ class OpenAIAdapter:
 
         return headers
 
+    def _normalize_tool_calls(
+        self,
+        tool_calls: list[dict[str, Any]],
+    ) -> list[ProviderToolCall]:
+        normalized: list[ProviderToolCall] = []
+
+        for index, item in enumerate(tool_calls):
+            name = item.get("name")
+
+            if not isinstance(name, str) or not name:
+                continue
+
+            raw_arguments = item.get(
+                "arguments",
+                {},
+            )
+
+            if isinstance(raw_arguments, str):
+                try:
+                    arguments = json.loads(
+                        raw_arguments
+                    )
+                except json.JSONDecodeError:
+                    arguments = {
+                        "__raw_arguments__": (
+                            raw_arguments
+                        ),
+                    }
+            elif isinstance(raw_arguments, dict):
+                arguments = dict(raw_arguments)
+            else:
+                arguments = {
+                    "__raw_arguments__": (
+                        raw_arguments
+                    ),
+                }
+
+            if not isinstance(arguments, dict):
+                arguments = {
+                    "__value__": arguments,
+                }
+
+            call_id = (
+                item.get("call_id")
+                or item.get("id")
+                or f"openai_call_{index + 1}"
+            )
+
+            normalized.append(
+                ProviderToolCall(
+                    call_id=str(call_id),
+                    tool_name=name,
+                    arguments=arguments,
+                    provider_format=(
+                        "OPENAI_RESPONSES"
+                    ),
+                    raw=dict(item),
+                )
+            )
+
+        return normalized
+
     def _normalize_response(
         self,
         *,
@@ -447,6 +512,9 @@ class OpenAIAdapter:
                 else None
             ),
             usage=usage,
+            tool_calls=self._normalize_tool_calls(
+                tool_calls
+            ),
             metadata={
                 "status": payload.get("status"),
                 "created_at": payload.get(

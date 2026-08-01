@@ -20,6 +20,17 @@ from af_core.runtime.llm_provider import (
     LLMMessage,
     LLMProvider,
 )
+from af_core.runtime.provider_protocol import (
+    ProviderAdapter,
+    ProviderMessage,
+)
+from af_core.runtime.tool_call_models import (
+    NormalizedToolCall,
+    ToolCallExecutionRecord,
+)
+from af_core.runtime.tool_call_runtime import (
+    ToolCallRuntime,
+)
 from af_core.runtime.tool_registry import (
     ToolDefinition,
     ToolRegistry,
@@ -43,6 +54,9 @@ class AgentExecutorResult(BaseModel):
     tool_records: list[ToolExecutionRecord] = Field(
         default_factory=list
     )
+    provider_tool_records: list[
+        ToolCallExecutionRecord
+    ] = Field(default_factory=list)
     changed_files: list[str] = Field(default_factory=list)
     diff_text: str = ""
     error: str | None = None
@@ -216,6 +230,180 @@ class AgentExecutor:
                 error=str(exc),
             )
 
+    async def execute_provider_tool_loop(
+        self,
+        *,
+        task: PlannedTask,
+        provider_adapter: ProviderAdapter,
+        tool_runtime: ToolCallRuntime,
+        model_id: str,
+        context_summary: str = "",
+        parameters: dict[str, Any] | None = None,
+        project_id: str | None = None,
+        run_id: str | None = None,
+    ) -> AgentExecutorResult:
+        """Execute a provider-native Tool Calling loop.
+
+        This path preserves the legacy AgentAction loop and uses
+        ProviderResponse.tool_calls as the source of tool requests.
+        """
+
+        state = AgentExecutionState(
+            agent_name=self.profile.name,
+            role=self.profile.role,
+        )
+        state.begin()
+
+        provider_records: list[
+            ToolCallExecutionRecord
+        ] = []
+
+        messages = [
+            ProviderMessage(
+                role="system",
+                content=self._system_prompt(),
+            ),
+            ProviderMessage(
+                role="user",
+                content=self._task_prompt(
+                    task=task,
+                    context_summary=context_summary,
+                ),
+            ),
+        ]
+
+        try:
+            for step in range(
+                1,
+                self.profile.maximum_steps + 1,
+            ):
+                response = await provider_adapter.complete(
+                    messages=messages,
+                    model_id=model_id,
+                    parameters=parameters,
+                )
+
+                if not response.has_tool_calls:
+                    summary = (
+                        response.content
+                        or "Task completed."
+                    )
+                    state.complete(summary)
+
+                    return await self._build_result(
+                        successful=True,
+                        summary=summary,
+                        state=state,
+                        records=[],
+                        provider_records=provider_records,
+                    )
+
+                normalized_calls = [
+                    NormalizedToolCall
+                    .from_provider_tool_call(
+                        item,
+                        provider_id=response.provider_id,
+                        model_id=response.model_id,
+                    )
+                    for item in response.tool_calls
+                ]
+
+                batch = await tool_runtime.execute_many(
+                    normalized_calls,
+                    project_id=project_id,
+                    run_id=run_id,
+                    task_id=task.id,
+                    agent_name=self.profile.name,
+                )
+
+                provider_records.extend(
+                    batch.records
+                )
+
+                assistant_payload = {
+                    "content": response.content,
+                    "tool_calls": [
+                        item.model_dump(
+                            mode="json"
+                        )
+                        for item in response.tool_calls
+                    ],
+                    "step": step,
+                }
+
+                messages.append(
+                    ProviderMessage(
+                        role="assistant",
+                        content=json.dumps(
+                            assistant_payload,
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        ),
+                    )
+                )
+
+                for tool_message in (
+                    tool_runtime.result_messages(
+                        batch
+                    )
+                ):
+                    messages.append(
+                        ProviderMessage(
+                            role="tool",
+                            content=json.dumps(
+                                {
+                                    "call_id": (
+                                        tool_message.call_id
+                                    ),
+                                    "tool_name": (
+                                        tool_message.tool_name
+                                    ),
+                                    "content": (
+                                        tool_message.content
+                                    ),
+                                    "is_error": (
+                                        tool_message.is_error
+                                    ),
+                                    "metadata": (
+                                        tool_message.metadata
+                                    ),
+                                },
+                                ensure_ascii=False,
+                                sort_keys=True,
+                            ),
+                        )
+                    )
+
+            error = (
+                "Agent exceeded maximum provider tool "
+                "execution steps: "
+                f"{self.profile.maximum_steps}"
+            )
+            state.fail(error)
+
+            return await self._build_result(
+                successful=False,
+                summary="Maximum steps exceeded.",
+                state=state,
+                records=[],
+                provider_records=provider_records,
+                error=error,
+            )
+
+        except Exception as exc:
+            state.fail(str(exc))
+
+            return await self._build_result(
+                successful=False,
+                summary=(
+                    "Provider tool-loop execution failed."
+                ),
+                state=state,
+                records=[],
+                provider_records=provider_records,
+                error=str(exc),
+            )
+
     async def _execute_tool(
         self,
         *,
@@ -298,6 +486,9 @@ class AgentExecutor:
         summary: str,
         state: AgentExecutionState,
         records: list[ToolExecutionRecord],
+        provider_records: list[
+            ToolCallExecutionRecord
+        ] | None = None,
         error: str | None = None,
     ) -> AgentExecutorResult:
         status_result = await self.command_runner.run(
@@ -343,6 +534,9 @@ class AgentExecutor:
             summary=summary,
             state=state,
             tool_records=records,
+            provider_tool_records=(
+                provider_records or []
+            ),
             changed_files=sorted(set(changed_files)),
             diff_text=diff_result.stdout,
             error=error,
