@@ -48,6 +48,15 @@ from .tool_call_normalizer import (
     ProviderToolCallNormalizer,
 )
 
+from .runtime_policy_engine import (
+    RuntimePolicyEnforcementError,
+    RuntimePolicyEngine,
+)
+from .runtime_policy_models import (
+    RuntimeEvaluationContext,
+    RuntimePolicyScope,
+)
+
 
 class ToolCallRuntimeError(RuntimeError):
     """Raised when tool-call execution cannot proceed."""
@@ -95,6 +104,9 @@ class ToolCallRuntime:
         telemetry_collector: (
             ToolTelemetryCollector | None
         ) = None,
+        runtime_policy_engine: (
+            RuntimePolicyEngine | None
+        ) = None,
     ) -> None:
         self.registry = registry
         self.normalizer = (
@@ -108,6 +120,7 @@ class ToolCallRuntime:
         self.budget_governor = budget_governor
         self.batch_governor = batch_governor
         self.telemetry_collector = telemetry_collector
+        self.runtime_policy_engine = runtime_policy_engine
         self._batch_audits: list[
             ToolBatchAudit
         ] = []
@@ -283,6 +296,75 @@ class ToolCallRuntime:
             task_id=task_id,
             agent_name=agent_name,
         )
+
+        runtime_policy_result = None
+
+        if self.runtime_policy_engine is not None:
+            runtime_policy_result = (
+                self.runtime_policy_engine.evaluate(
+                    RuntimeEvaluationContext(
+                        request_id=call.call_id,
+                        subject_id=(
+                            agent_name or "anonymous-agent"
+                        ),
+                        action="tool.execute",
+                        resource=tool_id,
+                        scope=RuntimePolicyScope.TOOL,
+                        scope_id=tool_id,
+                        attributes={
+                            "project_id": project_id,
+                            "run_id": run_id,
+                            "task_id": task_id,
+                            "agent_name": agent_name,
+                            "provider_id": call.provider_id,
+                            "model_id": call.model_id,
+                            "provider_tool_name": (
+                                call.tool_name
+                            ),
+                            "approved": approved,
+                        },
+                    )
+                )
+            )
+
+            try:
+                self.runtime_policy_engine.enforce(
+                    runtime_policy_result,
+                    approved=approved,
+                )
+            except RuntimePolicyEnforcementError as exc:
+                blocked_result = ExternalToolResult(
+                    call_id=external_call.call_id,
+                    tool_id=external_call.tool_id,
+                    status=ToolExecutionStatus.BLOCKED,
+                    is_error=True,
+                    error=str(exc),
+                    metadata={
+                        "runtime_policy": (
+                            runtime_policy_result.model_dump(
+                                mode="json"
+                            )
+                        ),
+                    },
+                )
+
+                await self._emit_telemetry(
+                    "call_blocked",
+                    tool_id=tool_id,
+                    call_id=external_call.call_id,
+                    reason=blocked_result.error,
+                    project_id=project_id,
+                    run_id=run_id,
+                    task_id=task_id,
+                    agent_id=agent_name,
+                )
+
+                return ToolCallExecutionRecord(
+                    call=call,
+                    external_call=external_call,
+                    result=blocked_result,
+                    approved=approved,
+                )
 
         await self._emit_telemetry(
             "call_started",
