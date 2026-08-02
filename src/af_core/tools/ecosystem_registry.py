@@ -792,3 +792,45 @@ class ToolEcosystemRegistry:
                 "non-server entries: "
                 + ", ".join(sorted(wrong_servers))
             )
+
+    def upsert_tool(
+        self,
+        manifest: ToolManifest,
+        *,
+        preserve_runtime_state: bool = True,
+    ) -> ToolEcosystemEntry:
+        existing = self._entries.get(
+            manifest.tool_id
+        )
+
+        if existing is None:
+            return self.register_tool(manifest)
+
+        installation = (
+            existing.installation
+            if preserve_runtime_state
+            else ToolInstallationRecord(
+                ecosystem_id=manifest.tool_id
+            )
+        )
+
+        health = (
+            existing.health
+            if preserve_runtime_state
+            else ToolHealthRecord(
+                ecosystem_id=manifest.tool_id
+            )
+        )
+
+        updated = ToolEcosystemEntry(
+            ecosystem_id=manifest.tool_id,
+            tool=manifest,
+            installation=installation,
+            health=health,
+            registered_at=existing.registered_at,
+            updated_at=utc_now(),
+        )
+
+        self._entries[manifest.tool_id] = updated
+
+        return updated.model_copy(deep=True)
