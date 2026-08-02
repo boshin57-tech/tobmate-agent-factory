@@ -8,10 +8,28 @@ from pydantic import BaseModel, Field
 
 from af_core.tools.models import (
     ExternalToolCall,
+    ExternalToolResult,
+    ToolExecutionStatus,
 )
 from af_core.tools.registry import (
     ExternalToolRegistry,
     ExternalToolRegistryError,
+)
+
+from .tool_call_batch import (
+    ToolBatchAudit,
+    ToolBatchGovernor,
+    ToolBatchLimitError,
+)
+
+from .tool_call_budget import (
+    ToolBudgetEvaluationResult,
+    ToolCallBudgetGovernor,
+)
+
+from .tool_call_resilience import (
+    ResilientToolExecutionResult,
+    ToolCallResilienceExecutor,
 )
 
 from .tool_call_models import (
@@ -59,6 +77,15 @@ class ToolCallRuntime:
         mappings: Sequence[ToolNameMapping] | None = None,
         policy: ToolCallRuntimePolicy | None = None,
         approval_resolver: ApprovalResolver | None = None,
+        resilience_executor: (
+            ToolCallResilienceExecutor | None
+        ) = None,
+        budget_governor: (
+            ToolCallBudgetGovernor | None
+        ) = None,
+        batch_governor: (
+            ToolBatchGovernor | None
+        ) = None,
     ) -> None:
         self.registry = registry
         self.normalizer = (
@@ -66,6 +93,22 @@ class ToolCallRuntime:
         )
         self.policy = policy or ToolCallRuntimePolicy()
         self.approval_resolver = approval_resolver
+        self.resilience_executor = (
+            resilience_executor
+        )
+        self.budget_governor = budget_governor
+        self.batch_governor = batch_governor
+        self._batch_audits: list[
+            ToolBatchAudit
+        ] = []
+        self._budget_by_call_id: dict[
+            str,
+            ToolBudgetEvaluationResult,
+        ] = {}
+        self._resilience_by_call_id: dict[
+            str,
+            ResilientToolExecutionResult,
+        ] = {}
 
         self._tool_name_map: dict[str, str] = {}
 
@@ -178,10 +221,186 @@ class ToolCallRuntime:
             agent_name=agent_name,
         )
 
-        result = await self.registry.execute(
-            external_call,
-            approved=approved,
-        )
+        budget_evaluation = None
+
+        if self.budget_governor is not None:
+            descriptor = self.registry.get(tool_id)
+
+            budget_evaluation = (
+                self.budget_governor.evaluate(
+                    call=external_call,
+                    descriptor=descriptor,
+                    attempt_count=1,
+                    scopes=(
+                        self.budget_governor
+                        .scope_bindings(
+                            project_id=project_id,
+                            run_id=run_id,
+                            task_id=task_id,
+                            agent_name=agent_name,
+                        )
+                    ),
+                )
+            )
+
+            self._budget_by_call_id[
+                external_call.call_id
+            ] = budget_evaluation
+
+            if not budget_evaluation.allowed:
+                reasons = (
+                    budget_evaluation.reasons
+                    or [
+                        "Tool execution blocked by "
+                        "budget governance."
+                    ]
+                )
+
+                blocked_result = ExternalToolResult(
+                    call_id=external_call.call_id,
+                    tool_id=external_call.tool_id,
+                    status=ToolExecutionStatus.BLOCKED,
+                    is_error=True,
+                    error="; ".join(reasons),
+                    metadata={
+                        "budget": (
+                            budget_evaluation.model_dump(
+                                mode="json"
+                            )
+                        ),
+                    },
+                )
+
+                return ToolCallExecutionRecord(
+                    call=call,
+                    external_call=external_call,
+                    result=blocked_result,
+                    approved=approved,
+                )
+
+        if self.resilience_executor is None:
+            result = await self.registry.execute(
+                external_call,
+                approved=approved,
+            )
+        else:
+            resilient = await (
+                self.resilience_executor.execute(
+                    lambda attempt: (
+                        self.registry.execute(
+                            external_call,
+                            approved=approved,
+                        )
+                    )
+                )
+            )
+
+            result = resilient.result.model_copy(
+                update={
+                    "call_id": external_call.call_id,
+                    "tool_id": external_call.tool_id,
+                    "metadata": {
+                        **resilient.result.metadata,
+                        "resilience": {
+                            "attempt_count": (
+                                resilient.attempt_count
+                            ),
+                            "retried": (
+                                resilient.retried
+                            ),
+                            "retry_history": (
+                                resilient.retry_history
+                                .model_dump(
+                                    mode="json"
+                                )
+                            ),
+                            "attempts": [
+                                item.model_dump(
+                                    mode="json"
+                                )
+                                for item in (
+                                    resilient.attempts
+                                )
+                            ],
+                        },
+                    },
+                }
+            )
+
+            self._resilience_by_call_id[
+                external_call.call_id
+            ] = resilient
+
+        if (
+            self.budget_governor is not None
+            and budget_evaluation is not None
+        ):
+            actual_attempt_count = 1
+
+            resilience = self._resilience_by_call_id.get(
+                external_call.call_id
+            )
+
+            if resilience is not None:
+                actual_attempt_count = max(
+                    resilience.attempt_count,
+                    1,
+                )
+
+            if actual_attempt_count != 1:
+                descriptor = self.registry.get(tool_id)
+
+                budget_evaluation = (
+                    self.budget_governor.evaluate(
+                        call=external_call,
+                        descriptor=descriptor,
+                        attempt_count=(
+                            actual_attempt_count
+                        ),
+                        scopes=(
+                            self.budget_governor
+                            .scope_bindings(
+                                project_id=project_id,
+                                run_id=run_id,
+                                task_id=task_id,
+                                agent_name=agent_name,
+                            )
+                        ),
+                    )
+                )
+
+                self._budget_by_call_id[
+                    external_call.call_id
+                ] = budget_evaluation
+
+            if budget_evaluation.allowed:
+                committed_usage = (
+                    self.budget_governor.commit(
+                        call_id=external_call.call_id
+                    )
+                )
+
+                result = result.model_copy(
+                    update={
+                        "metadata": {
+                            **result.metadata,
+                            "budget": {
+                                "evaluation": (
+                                    budget_evaluation
+                                    .model_dump(
+                                        mode="json"
+                                    )
+                                ),
+                                "committed_usage": (
+                                    committed_usage
+                                    .model_dump(
+                                        mode="json"
+                                    )
+                                ),
+                            },
+                        },
+                    }
+                )
 
         return ToolCallExecutionRecord(
             call=call,
@@ -202,6 +421,25 @@ class ToolCallRuntime:
         if not calls:
             return ToolCallBatchResult()
 
+        batch_audit = None
+
+        if self.batch_governor is not None:
+            batch_id = (
+                f"{run_id or 'run'}:"
+                f"{task_id or 'task'}:"
+                f"{len(self._batch_audits) + 1}"
+            )
+
+            batch_audit = self.batch_governor.begin(
+                batch_id=batch_id,
+                calls=list(calls),
+                run_id=run_id,
+            )
+
+            self._batch_audits.append(
+                batch_audit
+            )
+
         if (
             not self.policy.allow_parallel_execution
             or self.policy.maximum_parallelism == 1
@@ -211,6 +449,16 @@ class ToolCallRuntime:
             ] = []
 
             for call in calls:
+                if (
+                    batch_audit is not None
+                    and self.batch_governor
+                    is not None
+                ):
+                    self.batch_governor.mark_running(
+                        batch_audit,
+                        call.call_id,
+                    )
+
                 record = await self.execute_one(
                     call,
                     project_id=project_id,
@@ -221,10 +469,79 @@ class ToolCallRuntime:
                 records.append(record)
 
                 if (
+                    batch_audit is not None
+                    and self.batch_governor
+                    is not None
+                ):
+                    budget_result = (
+                        self.budget_result(
+                            call.call_id
+                        )
+                    )
+
+                    post_budget_violation = (
+                        budget_result is not None
+                        and not budget_result.allowed
+                        and record.result.status.value
+                        != "BLOCKED"
+                    )
+
+                    self.batch_governor.mark_completed(
+                        batch_audit,
+                        record,
+                        post_budget_violation=(
+                            post_budget_violation
+                        ),
+                    )
+
+                if (
                     self.policy.stop_on_failure
                     and not record.successful
                 ):
+                    if (
+                        batch_audit is not None
+                        and self.batch_governor
+                        is not None
+                        and (
+                            self.batch_governor
+                            .policy
+                            .cancel_pending_on_failure
+                        )
+                    ):
+                        current_index = list(
+                            calls
+                        ).index(call)
+
+                        for pending_call in list(
+                            calls
+                        )[current_index + 1:]:
+                            self.batch_governor.mark_cancelled(
+                                batch_audit,
+                                pending_call.call_id,
+                                reason=(
+                                    "Cancelled after an earlier "
+                                    "Tool Call failed."
+                                ),
+                            )
+
+                        if (
+                            current_index + 1
+                            < len(calls)
+                        ):
+                            batch_audit.cancellation_requested = (
+                                True
+                            )
+
                     break
+
+            if (
+                batch_audit is not None
+                and self.batch_governor
+                is not None
+            ):
+                self.batch_governor.finalize(
+                    batch_audit
+                )
 
             return ToolCallBatchResult(
                 records=records
@@ -238,13 +555,51 @@ class ToolCallRuntime:
             call: NormalizedToolCall,
         ) -> ToolCallExecutionRecord:
             async with semaphore:
-                return await self.execute_one(
+                if (
+                    batch_audit is not None
+                    and self.batch_governor
+                    is not None
+                ):
+                    self.batch_governor.mark_running(
+                        batch_audit,
+                        call.call_id,
+                    )
+
+                record = await self.execute_one(
                     call,
                     project_id=project_id,
                     run_id=run_id,
                     task_id=task_id,
                     agent_name=agent_name,
                 )
+
+                if (
+                    batch_audit is not None
+                    and self.batch_governor
+                    is not None
+                ):
+                    budget_result = (
+                        self.budget_result(
+                            call.call_id
+                        )
+                    )
+
+                    post_budget_violation = (
+                        budget_result is not None
+                        and not budget_result.allowed
+                        and record.result.status.value
+                        != "BLOCKED"
+                    )
+
+                    self.batch_governor.mark_completed(
+                        batch_audit,
+                        record,
+                        post_budget_violation=(
+                            post_budget_violation
+                        ),
+                    )
+
+                return record
 
         tasks = [
             asyncio.create_task(
@@ -257,6 +612,15 @@ class ToolCallRuntime:
             records = await asyncio.gather(
                 *tasks
             )
+
+            if (
+                batch_audit is not None
+                and self.batch_governor
+                is not None
+            ):
+                self.batch_governor.finalize(
+                    batch_audit
+                )
 
             return ToolCallBatchResult(
                 records=list(records)
@@ -271,9 +635,30 @@ class ToolCallRuntime:
             records.append(record)
 
             if not record.successful:
-                for pending in tasks:
+                for index, pending in enumerate(
+                    tasks
+                ):
                     if not pending.done():
                         pending.cancel()
+
+                        if (
+                            batch_audit is not None
+                            and self.batch_governor
+                            is not None
+                        ):
+                            cancelled_call = calls[index]
+
+                            self.batch_governor.mark_cancelled(
+                                batch_audit,
+                                cancelled_call.call_id,
+                            )
+
+                if (
+                    batch_audit is not None
+                    and self.batch_governor
+                    is not None
+                ):
+                    batch_audit.cancellation_requested = True
 
                 await asyncio.gather(
                     *tasks,
@@ -281,8 +666,69 @@ class ToolCallRuntime:
                 )
                 break
 
+        if (
+            batch_audit is not None
+            and self.batch_governor
+            is not None
+        ):
+            self.batch_governor.finalize(
+                batch_audit
+            )
+
         return ToolCallBatchResult(
             records=records
+        )
+
+    def batch_audits(
+        self,
+    ) -> list[ToolBatchAudit]:
+        return [
+            item.model_copy(deep=True)
+            for item in self._batch_audits
+        ]
+
+    def latest_batch_audit(
+        self,
+    ) -> ToolBatchAudit | None:
+        if not self._batch_audits:
+            return None
+
+        return self._batch_audits[-1].model_copy(
+            deep=True
+        )
+
+    def budget_result(
+        self,
+        call_id: str,
+    ) -> ToolBudgetEvaluationResult | None:
+        return self._budget_by_call_id.get(
+            call_id
+        )
+
+    def budget_results(
+        self,
+    ) -> dict[
+        str,
+        ToolBudgetEvaluationResult,
+    ]:
+        return dict(self._budget_by_call_id)
+
+    def resilience_result(
+        self,
+        call_id: str,
+    ) -> ResilientToolExecutionResult | None:
+        return self._resilience_by_call_id.get(
+            call_id
+        )
+
+    def resilience_results(
+        self,
+    ) -> dict[
+        str,
+        ResilientToolExecutionResult,
+    ]:
+        return dict(
+            self._resilience_by_call_id
         )
 
     def result_messages(
