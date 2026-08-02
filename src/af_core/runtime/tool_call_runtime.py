@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 import asyncio
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
@@ -11,6 +13,10 @@ from af_core.tools.models import (
     ExternalToolResult,
     ToolExecutionStatus,
 )
+from af_core.tools.tool_telemetry import (
+    ToolTelemetryCollector,
+)
+
 from af_core.tools.registry import (
     ExternalToolRegistry,
     ExternalToolRegistryError,
@@ -86,6 +92,9 @@ class ToolCallRuntime:
         batch_governor: (
             ToolBatchGovernor | None
         ) = None,
+        telemetry_collector: (
+            ToolTelemetryCollector | None
+        ) = None,
     ) -> None:
         self.registry = registry
         self.normalizer = (
@@ -98,6 +107,7 @@ class ToolCallRuntime:
         )
         self.budget_governor = budget_governor
         self.batch_governor = batch_governor
+        self.telemetry_collector = telemetry_collector
         self._batch_audits: list[
             ToolBatchAudit
         ] = []
@@ -114,6 +124,23 @@ class ToolCallRuntime:
 
         for mapping in mappings or []:
             self.add_mapping(mapping)
+
+    async def _emit_telemetry(
+        self,
+        method: str,
+        **kwargs,
+    ) -> None:
+        collector = self.telemetry_collector
+
+        if collector is None:
+            return
+
+        emitter = getattr(
+            collector,
+            method,
+        )
+
+        await emitter(**kwargs)
 
     def add_mapping(
         self,
@@ -204,8 +231,44 @@ class ToolCallRuntime:
         task_id: str | None = None,
         agent_name: str | None = None,
     ) -> ToolCallExecutionRecord:
-        tool_id = self.resolve_tool_id(
-            call.tool_name
+        started_at = time.perf_counter()
+
+        try:
+            tool_id = self.resolve_tool_id(
+                call.tool_name
+            )
+        except Exception as exc:
+            await self._emit_telemetry(
+                "call_failed",
+                tool_id=None,
+                call_id=call.call_id,
+                error=exc,
+                project_id=project_id,
+                run_id=run_id,
+                task_id=task_id,
+                agent_id=agent_name,
+                metadata={
+                    "provider_tool_name": (
+                        call.tool_name
+                    ),
+                    "phase": "tool_resolution",
+                },
+            )
+            raise
+
+        await self._emit_telemetry(
+            "call_requested",
+            tool_id=tool_id,
+            call_id=call.call_id,
+            project_id=project_id,
+            run_id=run_id,
+            task_id=task_id,
+            agent_id=agent_name,
+            metadata={
+                "provider_tool_name": (
+                    call.tool_name
+                ),
+            },
         )
 
         approved = await self._resolve_approval(
@@ -219,6 +282,16 @@ class ToolCallRuntime:
             run_id=run_id,
             task_id=task_id,
             agent_name=agent_name,
+        )
+
+        await self._emit_telemetry(
+            "call_started",
+            tool_id=tool_id,
+            call_id=external_call.call_id,
+            project_id=project_id,
+            run_id=run_id,
+            task_id=task_id,
+            agent_id=agent_name,
         )
 
         budget_evaluation = None
@@ -271,6 +344,19 @@ class ToolCallRuntime:
                     },
                 )
 
+                await self._emit_telemetry(
+                    "call_blocked",
+                    tool_id=tool_id,
+                    call_id=external_call.call_id,
+                    reason=blocked_result.error or (
+                        "Tool Call blocked."
+                    ),
+                    project_id=project_id,
+                    run_id=run_id,
+                    task_id=task_id,
+                    agent_id=agent_name,
+                )
+
                 return ToolCallExecutionRecord(
                     call=call,
                     external_call=external_call,
@@ -278,58 +364,77 @@ class ToolCallRuntime:
                     approved=approved,
                 )
 
-        if self.resilience_executor is None:
-            result = await self.registry.execute(
-                external_call,
-                approved=approved,
-            )
-        else:
-            resilient = await (
-                self.resilience_executor.execute(
-                    lambda attempt: (
-                        self.registry.execute(
-                            external_call,
-                            approved=approved,
+        try:
+            if self.resilience_executor is None:
+                result = await self.registry.execute(
+                    external_call,
+                    approved=approved,
+                )
+            else:
+                resilient = await (
+                    self.resilience_executor.execute(
+                        lambda attempt: (
+                            self.registry.execute(
+                                external_call,
+                                approved=approved,
+                            )
                         )
                     )
                 )
-            )
 
-            result = resilient.result.model_copy(
-                update={
-                    "call_id": external_call.call_id,
-                    "tool_id": external_call.tool_id,
-                    "metadata": {
-                        **resilient.result.metadata,
-                        "resilience": {
-                            "attempt_count": (
-                                resilient.attempt_count
-                            ),
-                            "retried": (
-                                resilient.retried
-                            ),
-                            "retry_history": (
-                                resilient.retry_history
-                                .model_dump(
-                                    mode="json"
-                                )
-                            ),
-                            "attempts": [
-                                item.model_dump(
-                                    mode="json"
-                                )
-                                for item in (
-                                    resilient.attempts
-                                )
-                            ],
+                result = resilient.result.model_copy(
+                    update={
+                        "call_id": external_call.call_id,
+                        "tool_id": external_call.tool_id,
+                        "metadata": {
+                            **resilient.result.metadata,
+                            "resilience": {
+                                "attempt_count": (
+                                    resilient.attempt_count
+                                ),
+                                "retried": (
+                                    resilient.retried
+                                ),
+                                "retry_history": (
+                                    resilient.retry_history
+                                    .model_dump(
+                                        mode="json"
+                                    )
+                                ),
+                                "attempts": [
+                                    item.model_dump(
+                                        mode="json"
+                                    )
+                                    for item in (
+                                        resilient.attempts
+                                    )
+                                ],
+                            },
                         },
-                    },
-                }
-            )
+                    }
+                )
 
-            self._resilience_by_call_id[
-                external_call.call_id
-            ] = resilient
+                self._resilience_by_call_id[
+                    external_call.call_id
+                ] = resilient
+
+        except Exception as exc:
+            duration_ms = (
+                time.perf_counter() - started_at
+            ) * 1000
+
+            await self._emit_telemetry(
+                "call_failed",
+                tool_id=tool_id,
+                call_id=external_call.call_id,
+                error=exc,
+                duration_ms=duration_ms,
+                project_id=project_id,
+                run_id=run_id,
+                task_id=task_id,
+                agent_id=agent_name,
+            )
+            raise
 
         if (
             self.budget_governor is not None
@@ -401,6 +506,85 @@ class ToolCallRuntime:
                         },
                     }
                 )
+
+        duration_ms = (
+            time.perf_counter() - started_at
+        ) * 1000
+
+        resilience = self._resilience_by_call_id.get(
+            external_call.call_id
+        )
+        retry_count = (
+            max(resilience.attempt_count - 1, 0)
+            if resilience is not None
+            else 0
+        )
+
+        if result.status is (
+            ToolExecutionStatus.SUCCEEDED
+        ):
+            await self._emit_telemetry(
+                "call_succeeded",
+                tool_id=tool_id,
+                call_id=external_call.call_id,
+                duration_ms=duration_ms,
+                project_id=project_id,
+                run_id=run_id,
+                task_id=task_id,
+                agent_id=agent_name,
+                retry_count=retry_count,
+                metadata={
+                    "approved": approved,
+                },
+            )
+
+        elif result.status is (
+            ToolExecutionStatus.TIMED_OUT
+        ):
+            await self._emit_telemetry(
+                "call_timed_out",
+                tool_id=tool_id,
+                call_id=external_call.call_id,
+                duration_ms=duration_ms,
+                project_id=project_id,
+                run_id=run_id,
+                task_id=task_id,
+                agent_id=agent_name,
+                retry_count=retry_count,
+            )
+
+        elif result.status is (
+            ToolExecutionStatus.BLOCKED
+        ):
+            await self._emit_telemetry(
+                "call_blocked",
+                tool_id=tool_id,
+                call_id=external_call.call_id,
+                reason=result.error or (
+                    "Tool Call blocked."
+                ),
+                project_id=project_id,
+                run_id=run_id,
+                task_id=task_id,
+                agent_id=agent_name,
+            )
+
+        else:
+            await self._emit_telemetry(
+                "call_failed",
+                tool_id=tool_id,
+                call_id=external_call.call_id,
+                error=result.error or (
+                    f"Tool Call ended with "
+                    f"{result.status.value}."
+                ),
+                duration_ms=duration_ms,
+                project_id=project_id,
+                run_id=run_id,
+                task_id=task_id,
+                agent_id=agent_name,
+                retry_count=retry_count,
+            )
 
         return ToolCallExecutionRecord(
             call=call,
