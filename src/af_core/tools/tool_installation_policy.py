@@ -463,19 +463,66 @@ class ManifestIntegrityValidator:
             )
 
         payload = manifest.model_dump(
-            mode="json",
+            mode="python",
             exclude={
                 "checksum",
                 "signature",
             },
         )
 
+        canonical = self._canonicalize(
+            payload
+        )
+
         return json.dumps(
-            payload,
+            canonical,
             ensure_ascii=False,
             sort_keys=True,
             separators=(",", ":"),
         ).encode("utf-8")
+
+    def _canonicalize(
+        self,
+        value: Any,
+    ) -> Any:
+        if isinstance(value, dict):
+            return {
+                str(key): self._canonicalize(item)
+                for key, item in value.items()
+            }
+
+        if isinstance(value, (set, frozenset)):
+            normalized = [
+                self._canonicalize(item)
+                for item in value
+            ]
+
+            return sorted(
+                normalized,
+                key=lambda item: json.dumps(
+                    item,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ),
+            )
+
+        if isinstance(value, (list, tuple)):
+            return [
+                self._canonicalize(item)
+                for item in value
+            ]
+
+        if isinstance(value, StrEnum):
+            return value.value
+
+        if isinstance(value, datetime):
+            return value.isoformat()
+
+        if isinstance(value, bytes):
+            return value.hex()
+
+        return value
 
     def compute_checksum(
         self,
