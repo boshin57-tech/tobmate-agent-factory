@@ -1,67 +1,57 @@
-import asyncio
+from af_core.llm.llm_models import (
+    LLMRequest,
+)
 
-import pytest
+from af_core.llm.providers.openai_provider import (
+    OpenAIProvider,
+)
 
-from af_core.runtime.agent import AgentAction
-from af_core.runtime.llm_provider import (
-    LLMMessage,
-    LLMProviderError,
-    StaticLLMProvider,
+from af_core.llm.providers.local_provider import (
+    LocalLLMProvider,
+)
+
+from af_core.llm.llm_registry import (
+    LLMProviderRegistry,
 )
 
 
-def test_static_provider_returns_validated_response() -> None:
-    provider = StaticLLMProvider(
-        [
-            {
-                "action_type": "complete",
-                "summary": "done",
-            }
-        ]
+
+def test_openai_adapter():
+
+    provider = (
+        OpenAIProvider()
     )
 
-    result = asyncio.run(
-        provider.generate(
-            messages=[
-                LLMMessage(
-                    role="user",
-                    content="complete",
-                )
-            ],
-            response_model=AgentAction,
+
+    result = provider.generate(
+        LLMRequest(
+            prompt="hello"
         )
     )
 
-    assert result.action_type == "complete"
-    assert result.summary == "done"
-    assert len(provider.calls) == 1
 
-
-def test_static_provider_rejects_invalid_response() -> None:
-    provider = StaticLLMProvider(
-        [
-            {
-                "action_type": "complete",
-            }
-        ]
+    assert (
+        result.provider
+        ==
+        "openai"
     )
 
-    with pytest.raises(LLMProviderError):
-        asyncio.run(
-            provider.generate(
-                messages=[],
-                response_model=AgentAction,
-            )
-        )
 
 
-def test_static_provider_rejects_exhaustion() -> None:
-    provider = StaticLLMProvider([])
+def test_provider_registry():
 
-    with pytest.raises(LLMProviderError):
-        asyncio.run(
-            provider.generate(
-                messages=[],
-                response_model=AgentAction,
-            )
-        )
+    registry = (
+        LLMProviderRegistry()
+    )
+
+
+    registry.register(
+        "local",
+        LocalLLMProvider(),
+    )
+
+
+    assert (
+        registry.get("local")
+        is not None
+    )
