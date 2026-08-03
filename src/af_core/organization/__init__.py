@@ -477,3 +477,41 @@ __all__.extend(
         "TaskCoordinationCoordinator",
     ]
 )
+
+from .workflow_orchestration_engine import (
+    MultiAgentWorkflowOrchestrationEngine,
+)
+from .workflow_orchestration_models import (
+    OrchestratedWorkflow,
+    OrchestratedWorkflowStatus,
+    OrchestrationCheckpoint,
+    OrchestrationStatus,
+    WorkflowExecutionPolicy,
+    WorkflowExecutionRecord,
+    WorkflowFailurePolicy,
+    WorkflowOrchestration,
+    WorkflowOrchestrationResult,
+    WorkflowPriority,
+    WorkflowTriggerType,
+)
+from .workflow_orchestration_repository import (
+    WorkflowOrchestrationRepository,
+)
+
+__all__.extend(
+    [
+        "MultiAgentWorkflowOrchestrationEngine",
+        "OrchestratedWorkflow",
+        "OrchestratedWorkflowStatus",
+        "OrchestrationCheckpoint",
+        "OrchestrationStatus",
+        "WorkflowExecutionPolicy",
+        "WorkflowExecutionRecord",
+        "WorkflowFailurePolicy",
+        "WorkflowOrchestration",
+        "WorkflowOrchestrationRepository",
+        "WorkflowOrchestrationResult",
+        "WorkflowPriority",
+        "WorkflowTriggerType",
+    ]
+)
