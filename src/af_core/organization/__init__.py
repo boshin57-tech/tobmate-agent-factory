@@ -319,3 +319,161 @@ __all__.extend(
         "NegotiationVoteEventPayload",
     ]
 )
+
+from .task_coordination_engine import (
+    MultiAgentTaskCoordinationEngine,
+)
+from .task_coordination_models import (
+    CoordinatedTask,
+    CoordinatedTaskStatus,
+    CoordinationStatus,
+    TaskAssignment,
+    TaskCoordinationResult,
+    TaskCoordinationWorkflow,
+    TaskExecutionMode,
+    TaskExecutionRecord,
+    TaskFailurePolicy,
+    TaskPriority,
+)
+from .task_coordination_repository import (
+    TaskCoordinationRepository,
+)
+
+__all__.extend(
+    [
+        "CoordinatedTask",
+        "CoordinatedTaskStatus",
+        "CoordinationStatus",
+        "MultiAgentTaskCoordinationEngine",
+        "TaskAssignment",
+        "TaskCoordinationRepository",
+        "TaskCoordinationResult",
+        "TaskCoordinationWorkflow",
+        "TaskExecutionMode",
+        "TaskExecutionRecord",
+        "TaskFailurePolicy",
+        "TaskPriority",
+    ]
+)
+
+from .task_dependency_graph import (
+    TaskDependencyGraphEngine,
+)
+from .task_dependency_models import (
+    GraphValidationResult,
+    ParallelSchedule,
+    ReadyTaskQueue,
+    ReadyTaskRanking,
+    TaskDependencyGraph,
+    TaskDependencyNode,
+    TaskExecutionWave,
+    TaskGraphBuildRequest,
+)
+from .task_parallel_scheduler import (
+    ParallelTaskScheduler,
+)
+from .task_ready_queue import (
+    TaskReadyQueueEngine,
+)
+
+__all__.extend(
+    [
+        "GraphValidationResult",
+        "ParallelSchedule",
+        "ParallelTaskScheduler",
+        "ReadyTaskQueue",
+        "ReadyTaskRanking",
+        "TaskDependencyGraph",
+        "TaskDependencyGraphEngine",
+        "TaskDependencyNode",
+        "TaskExecutionWave",
+        "TaskGraphBuildRequest",
+        "TaskReadyQueueEngine",
+    ]
+)
+
+from .task_workload_balancer import (
+    TaskWorkloadBalancingEngine,
+)
+from .task_workload_models import (
+    TaskAgentAvailability,
+    TaskAgentRuntimeProfile,
+    TaskAgentScore,
+    TaskAgentSelectionResult,
+    TaskReassignmentAssessment,
+    TaskReassignmentDecision,
+    TaskReassignmentReason,
+    TaskReassignmentRecord,
+    TaskReassignmentRequest,
+    TaskReassignmentResult,
+)
+
+__all__.extend(
+    [
+        "TaskAgentAvailability",
+        "TaskAgentRuntimeProfile",
+        "TaskAgentScore",
+        "TaskAgentSelectionResult",
+        "TaskReassignmentAssessment",
+        "TaskReassignmentDecision",
+        "TaskReassignmentReason",
+        "TaskReassignmentRecord",
+        "TaskReassignmentRequest",
+        "TaskReassignmentResult",
+        "TaskWorkloadBalancingEngine",
+    ]
+)
+
+from .task_runtime_profile_repository import (
+    TaskRuntimeProfileRepository,
+)
+
+__all__.extend(
+    [
+        "TaskRuntimeProfileRepository",
+    ]
+)
+
+from .dynamic_task_reassignment import (
+    DynamicTaskReassignmentEngine,
+)
+
+__all__.extend(
+    [
+        "DynamicTaskReassignmentEngine",
+    ]
+)
+
+from .task_event_models import (
+    CoordinatedTaskEventPayload,
+    TaskAssignmentEventPayload,
+    TaskCoordinationEventType,
+    TaskExecutionEventPayload,
+    TaskReassignmentEventPayload,
+    TaskWorkflowEventPayload,
+)
+from .task_event_publisher import (
+    TaskCoordinationEventPublisher,
+)
+
+__all__.extend(
+    [
+        "CoordinatedTaskEventPayload",
+        "TaskAssignmentEventPayload",
+        "TaskCoordinationEventPublisher",
+        "TaskCoordinationEventType",
+        "TaskExecutionEventPayload",
+        "TaskReassignmentEventPayload",
+        "TaskWorkflowEventPayload",
+    ]
+)
+
+from .task_coordination_coordinator import (
+    TaskCoordinationCoordinator,
+)
+
+__all__.extend(
+    [
+        "TaskCoordinationCoordinator",
+    ]
+)
