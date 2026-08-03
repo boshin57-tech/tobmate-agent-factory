@@ -3,9 +3,17 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from collections.abc import Mapping
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from af_core.production import (
+    SecretReference,
+    redact_structure,
+    redact_text,
+    validate_environment_key,
+)
 
 
 class ProviderEndpointConfig(BaseModel):
@@ -26,15 +34,47 @@ class ProviderEndpointConfig(BaseModel):
     headers: dict[str, str] = Field(default_factory=dict)
     options: dict[str, Any] = Field(default_factory=dict)
 
-    def api_key(self) -> str | None:
+    @field_validator("api_key_environment")
+    @classmethod
+    def validate_api_key_environment(
+        cls,
+        value: str | None,
+    ) -> str | None:
+        if value is None:
+            return None
+
+        return validate_environment_key(value)
+
+    def secret_reference(
+        self,
+    ) -> SecretReference | None:
         if self.api_key_environment is None:
             return None
 
-        return os.environ.get(self.api_key_environment)
+        return SecretReference(
+            environment_key=self.api_key_environment,
+            required=False,
+        )
 
-    def resolved_headers(self) -> dict[str, str]:
+    def api_key(
+        self,
+        source: Mapping[str, str] | None = None,
+    ) -> str | None:
+        reference = self.secret_reference()
+
+        if reference is None:
+            return None
+
+        return reference.resolve(
+            os.environ if source is None else source
+        )
+
+    def resolved_headers(
+        self,
+        source: Mapping[str, str] | None = None,
+    ) -> dict[str, str]:
         headers = dict(self.headers)
-        api_key = self.api_key()
+        api_key = self.api_key(source)
 
         if api_key is not None:
             headers.setdefault(
@@ -43,6 +83,23 @@ class ProviderEndpointConfig(BaseModel):
             )
 
         return headers
+
+    def public_snapshot(self) -> dict[str, Any]:
+        payload = self.model_dump(mode="json")
+
+        payload["base_url"] = redact_text(
+            str(payload["base_url"])
+        )
+
+        payload["headers"] = redact_structure(
+            payload["headers"]
+        )
+
+        payload["options"] = redact_structure(
+            payload["options"]
+        )
+
+        return payload
 
 
 class ProviderRuntimeConfig(BaseModel):
@@ -67,6 +124,15 @@ class ProviderRuntimeConfig(BaseModel):
             )
 
         return config
+
+    def public_snapshot(self) -> dict[str, Any]:
+        return {
+            "providers": {
+                provider_id: config.public_snapshot()
+                for provider_id, config
+                in self.providers.items()
+            }
+        }
 
     @classmethod
     def from_json_file(
@@ -96,7 +162,7 @@ class ProviderRuntimeConfig(BaseModel):
         )
         temporary.write_text(
             json.dumps(
-                self.model_dump(mode="json"),
+                self.public_snapshot(),
                 ensure_ascii=False,
                 indent=2,
                 sort_keys=True,

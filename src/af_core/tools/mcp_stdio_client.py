@@ -3,12 +3,20 @@ from __future__ import annotations
 import asyncio
 import os
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from contextlib import AsyncExitStack
 from typing import Any
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+
+from af_core.production import (
+    ProductionSettings,
+    SecretReference,
+    redact_text,
+    sanitized_environment,
+    validate_environment_key,
+)
 
 from .mcp_context import MCPContextOperations
 from .mcp_context_models import (
@@ -40,9 +48,28 @@ class MCPClientError(RuntimeError):
 
 
 class MCPStdioClient:
+    DEFAULT_ALLOWED_ENVIRONMENT_KEYS = {
+        "PATH",
+        "HOME",
+        "LANG",
+        "LC_ALL",
+        "TMPDIR",
+        "PYTHONPATH",
+        "VIRTUAL_ENV",
+        "CARGO_HOME",
+        "RUSTUP_HOME",
+    }
+
     def __init__(
         self,
         config: MCPServerConfig,
+        *,
+        settings: ProductionSettings | None = None,
+        environment_source: Mapping[str, str] | None = None,
+        secret_environment: Mapping[
+            str,
+            SecretReference,
+        ] | None = None,
     ) -> None:
         if (
             config.transport
@@ -58,6 +85,15 @@ class MCPStdioClient:
             )
 
         self.config = config
+        self.settings = settings
+        self._environment_source = dict(
+            os.environ
+            if environment_source is None
+            else environment_source
+        )
+        self._secret_environment = dict(
+            secret_environment or {}
+        )
         self._stack: AsyncExitStack | None = None
         self._session: ClientSession | None = None
         self._initialized = False
@@ -69,14 +105,81 @@ class MCPStdioClient:
             and self._initialized
         )
 
+    def _build_environment(
+        self,
+    ) -> tuple[dict[str, str], tuple[str, ...]]:
+        if self.settings is None:
+            allowed_keys = set(
+                self.DEFAULT_ALLOWED_ENVIRONMENT_KEYS
+            )
+            secret_keys: set[str] = set()
+        else:
+            allowed_keys = set(
+                self.settings.allowed_environment_keys
+            )
+            secret_keys = set(
+                self.settings.secret_environment_keys
+            )
+
+        environment = sanitized_environment(
+            self._environment_source,
+            allowed_keys=tuple(allowed_keys),
+            secret_keys=tuple(secret_keys),
+        )
+
+        for key, value in self.config.environment.items():
+            normalized = validate_environment_key(key)
+
+            if normalized in secret_keys:
+                raise MCPClientError(
+                    "MCP secret environment variable must "
+                    f"use SecretReference: {normalized}"
+                )
+
+            if (
+                self.settings is not None
+                and normalized not in allowed_keys
+            ):
+                raise MCPClientError(
+                    "MCP environment variable is not "
+                    f"allowed: {normalized}"
+                )
+
+            environment[normalized] = str(value)
+
+        known_secrets: list[str] = []
+
+        for key, reference in (
+            self._secret_environment.items()
+        ):
+            normalized = validate_environment_key(key)
+
+            if (
+                self.settings is not None
+                and normalized not in secret_keys
+            ):
+                raise MCPClientError(
+                    "MCP secret environment variable is "
+                    f"not declared: {normalized}"
+                )
+
+            value = reference.resolve(
+                self._environment_source
+            )
+
+            if value is not None:
+                environment[normalized] = value
+                known_secrets.append(value)
+
+        return environment, tuple(known_secrets)
+
     async def connect(self) -> None:
         if self.connected:
             return
 
-        environment = {
-            **os.environ,
-            **self.config.environment,
-        }
+        environment, known_secrets = (
+            self._build_environment()
+        )
 
         parameters = StdioServerParameters(
             command=self.config.command or "",
@@ -108,9 +211,14 @@ class MCPStdioClient:
         except Exception as exc:
             await stack.aclose()
 
+            safe_error = redact_text(
+                str(exc),
+                known_secrets=known_secrets,
+            )
+
             raise MCPClientError(
                 "Unable to initialize MCP stdio server "
-                f"{self.config.server_id}: {exc}"
+                f"{self.config.server_id}: {safe_error}"
             ) from exc
 
         self._stack = stack

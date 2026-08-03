@@ -4,9 +4,18 @@ import asyncio
 import os
 import shlex
 from pathlib import Path
-from typing import Sequence
+from collections.abc import Mapping, Sequence
 
 from pydantic import BaseModel, Field
+
+from af_core.production import (
+    ProductionSettings,
+    SecretReference,
+    is_sensitive_key,
+    redact_text,
+    sanitized_environment,
+    validate_environment_key,
+)
 
 
 class CommandPolicyError(RuntimeError):
@@ -143,11 +152,25 @@ class CommandPolicy:
 
 
 class RestrictedCommandRunner:
+    LEGACY_ALLOWED_ENVIRONMENT_KEYS = {
+        "PATH",
+        "HOME",
+        "LANG",
+        "LC_ALL",
+        "PYTHONPATH",
+        "VIRTUAL_ENV",
+        "CARGO_HOME",
+        "RUSTUP_HOME",
+        "TMPDIR",
+    }
+
     def __init__(
         self,
         workspace_path: str | Path,
         *,
         policy: CommandPolicy | None = None,
+        settings: ProductionSettings | None = None,
+        environment_source: Mapping[str, str] | None = None,
     ) -> None:
         self.workspace = Path(
             workspace_path
@@ -159,21 +182,44 @@ class RestrictedCommandRunner:
             )
 
         self.policy = policy or CommandPolicy()
+        self.settings = settings
+        self._environment_source = dict(
+            os.environ
+            if environment_source is None
+            else environment_source
+        )
 
     async def run(
         self,
         command: Sequence[str],
         *,
         cwd: str | Path | None = None,
-        timeout: int = 60,
-        environment: dict[str, str] | None = None,
+        timeout: int | None = None,
+        environment: Mapping[str, str] | None = None,
+        secret_environment: Mapping[
+            str,
+            SecretReference,
+        ] | None = None,
     ) -> CommandResult:
         normalized = self.policy.validate(command)
         execution_cwd = self._resolve_cwd(cwd)
 
         before = await self._git_status()
 
-        env = self._safe_environment(environment)
+        env, known_secrets = self._safe_environment(
+            environment,
+            secret_environment,
+        )
+
+        effective_timeout = (
+            timeout
+            if timeout is not None
+            else (
+                self.settings.command_timeout_seconds
+                if self.settings is not None
+                else 60
+            )
+        )
 
         try:
             process = await asyncio.create_subprocess_exec(
@@ -186,7 +232,7 @@ class RestrictedCommandRunner:
 
             stdout_bytes, stderr_bytes = await asyncio.wait_for(
                 process.communicate(),
-                timeout=timeout,
+                timeout=effective_timeout,
             )
 
             timed_out = False
@@ -199,22 +245,38 @@ class RestrictedCommandRunner:
 
         changed_files = sorted(after - before)
 
+        stdout = redact_text(
+            stdout_bytes.decode(
+                "utf-8",
+                errors="replace",
+            ),
+            known_secrets=known_secrets,
+        )
+
+        stderr = redact_text(
+            stderr_bytes.decode(
+                "utf-8",
+                errors="replace",
+            ),
+            known_secrets=known_secrets,
+        )
+
         return CommandResult(
-            command=normalized,
+            command=[
+                redact_text(
+                    item,
+                    known_secrets=known_secrets,
+                )
+                for item in normalized
+            ],
             cwd=str(execution_cwd),
             returncode=(
                 process.returncode
                 if not timed_out
                 else -1
             ),
-            stdout=stdout_bytes.decode(
-                "utf-8",
-                errors="replace",
-            ),
-            stderr=stderr_bytes.decode(
-                "utf-8",
-                errors="replace",
-            ),
+            stdout=stdout,
+            stderr=stderr,
             timed_out=timed_out,
             changed_files=changed_files,
         )
@@ -243,34 +305,76 @@ class RestrictedCommandRunner:
 
     def _safe_environment(
         self,
-        extra: dict[str, str] | None,
-    ) -> dict[str, str]:
-        allowed_keys = {
-            "PATH",
-            "HOME",
-            "LANG",
-            "LC_ALL",
-            "PYTHONPATH",
-            "VIRTUAL_ENV",
-            "CARGO_HOME",
-            "RUSTUP_HOME",
-        }
+        extra: Mapping[str, str] | None,
+        secret_environment: Mapping[
+            str,
+            SecretReference,
+        ] | None,
+    ) -> tuple[dict[str, str], tuple[str, ...]]:
+        if self.settings is None:
+            allowed_keys = set(
+                self.LEGACY_ALLOWED_ENVIRONMENT_KEYS
+            )
+            secret_keys: set[str] = set()
+        else:
+            allowed_keys = set(
+                self.settings.allowed_environment_keys
+            )
+            secret_keys = set(
+                self.settings.secret_environment_keys
+            )
 
-        environment = {
-            key: value
-            for key, value in os.environ.items()
-            if key in allowed_keys
-        }
+        environment = sanitized_environment(
+            self._environment_source,
+            allowed_keys=tuple(allowed_keys),
+            secret_keys=tuple(secret_keys),
+        )
 
         for key, value in (extra or {}).items():
-            if key not in allowed_keys:
+            normalized = validate_environment_key(key)
+
+            if (
+                normalized in secret_keys
+                or is_sensitive_key(normalized)
+            ):
                 raise CommandPolicyError(
-                    f"Environment variable is not allowed: {key}"
+                    "Secret environment variable must use "
+                    f"SecretReference: {normalized}"
                 )
 
-            environment[key] = value
+            if normalized not in allowed_keys:
+                raise CommandPolicyError(
+                    "Environment variable is not allowed: "
+                    f"{normalized}"
+                )
 
-        return environment
+            environment[normalized] = str(value)
+
+        known_secrets: list[str] = []
+
+        for key, reference in (
+            secret_environment or {}
+        ).items():
+            normalized = validate_environment_key(key)
+
+            if (
+                self.settings is not None
+                and normalized not in secret_keys
+            ):
+                raise CommandPolicyError(
+                    "Secret environment variable is not "
+                    f"declared: {normalized}"
+                )
+
+            value = reference.resolve(
+                self._environment_source
+            )
+
+            if value is not None:
+                environment[normalized] = value
+                known_secrets.append(value)
+
+        return environment, tuple(known_secrets)
 
     async def _git_status(self) -> set[str]:
         git_dir = self.workspace / ".git"
