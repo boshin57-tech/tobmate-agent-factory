@@ -20,7 +20,7 @@ from af_core.orchestrator.project_execution_models import (
     ProjectRunStatus,
 )
 from af_core.orchestrator.project_execution_repository import (
-    JsonProjectRunRepository,
+    ProjectRunRepository,
 )
 
 
@@ -104,7 +104,7 @@ class ProjectDeliveryLifecycleService:
 
     def __init__(
         self,
-        repository: JsonProjectRunRepository,
+        repository: ProjectRunRepository,
         audit_engine: ProjectCompletionAuditEngine | None = None,
     ) -> None:
         self._repository = repository
@@ -116,7 +116,7 @@ class ProjectDeliveryLifecycleService:
     @property
     def repository(
         self,
-    ) -> JsonProjectRunRepository:
+    ) -> ProjectRunRepository:
         return self._repository
 
     def begin_validation(

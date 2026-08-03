@@ -15,7 +15,7 @@ from af_core.orchestrator.project_execution_models import (
     ProjectTaskStatus,
 )
 from af_core.orchestrator.project_execution_repository import (
-    JsonProjectRunRepository,
+    ProjectRunRepository,
 )
 
 
@@ -28,12 +28,12 @@ class ProjectExecutionRuntime:
 
     def __init__(
         self,
-        repository: JsonProjectRunRepository,
+        repository: ProjectRunRepository,
     ) -> None:
         self._repository = repository
 
     @property
-    def repository(self) -> JsonProjectRunRepository:
+    def repository(self) -> ProjectRunRepository:
         return self._repository
 
     def create_run(

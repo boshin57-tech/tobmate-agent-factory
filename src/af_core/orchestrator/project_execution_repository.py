@@ -7,7 +7,7 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import Mapping
+from typing import Mapping, Protocol, runtime_checkable
 
 from af_core.orchestrator.project_execution_models import (
     ProjectExecutionError,
@@ -142,6 +142,65 @@ def _event_from_dict(
         task_id=data.get("task_id"),
         detail=dict(data.get("detail", {})),
     )
+
+
+@runtime_checkable
+class ProjectRunRepository(Protocol):
+    """Persistent project-run repository contract."""
+
+    def create(
+        self,
+        state: ProjectRunState,
+        *,
+        occurred_at: float,
+    ) -> ProjectRunSnapshot:
+        ...
+
+    def get(
+        self,
+        run_id: str,
+    ) -> ProjectRunSnapshot:
+        ...
+
+    def save(
+        self,
+        state: ProjectRunState,
+        *,
+        expected_version: int,
+        occurred_at: float,
+        event_kind: ProjectRunEventKind = (
+            ProjectRunEventKind.CHECKPOINT_SAVED
+        ),
+        detail: Mapping[str, object] | None = None,
+    ) -> ProjectRunSnapshot:
+        ...
+
+    def append_event(
+        self,
+        run_id: str,
+        *,
+        kind: ProjectRunEventKind,
+        occurred_at: float,
+        task_id: str | None = None,
+        detail: Mapping[str, object] | None = None,
+    ) -> ProjectRunEvent:
+        ...
+
+    def exists(
+        self,
+        run_id: str,
+    ) -> bool:
+        ...
+
+    def list_run_ids(
+        self,
+    ) -> tuple[str, ...]:
+        ...
+
+    def resumable(
+        self,
+    ) -> tuple[ProjectRunSnapshot, ...]:
+        ...
 
 
 class JsonProjectRunRepository:
@@ -393,7 +452,7 @@ class ProjectRunResumeService:
 
     def __init__(
         self,
-        repository: JsonProjectRunRepository,
+        repository: ProjectRunRepository,
     ) -> None:
         self._repository = repository
 

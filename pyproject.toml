@@ -11,7 +11,8 @@ dependencies=[
 "pydantic>=2",
 "sqlalchemy>=2",
 "httpx>=0.27.1,<1",
-"mcp>=1.29,<2"
+"mcp>=1.29,<2",
+"psycopg[binary]>=3.2,<4"
 ]
 
 [project.optional-dependencies]
