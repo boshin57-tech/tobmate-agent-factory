@@ -199,3 +199,123 @@ __all__.extend(
         "RoleFailoverEventPayload",
     ]
 )
+
+from .negotiation_engine import (
+    AgentNegotiationEngine,
+)
+from .negotiation_models import (
+    NegotiationCriterion,
+    NegotiationDecision,
+    NegotiationDecisionType,
+    NegotiationParticipant,
+    NegotiationParticipantRole,
+    NegotiationProposal,
+    NegotiationSession,
+    NegotiationStatus,
+    NegotiationVote,
+    ProposalStatus,
+)
+from .negotiation_repository import (
+    NegotiationRepository,
+)
+
+__all__.extend(
+    [
+        "AgentNegotiationEngine",
+        "NegotiationCriterion",
+        "NegotiationDecision",
+        "NegotiationDecisionType",
+        "NegotiationParticipant",
+        "NegotiationParticipantRole",
+        "NegotiationProposal",
+        "NegotiationRepository",
+        "NegotiationSession",
+        "NegotiationStatus",
+        "NegotiationVote",
+        "ProposalStatus",
+    ]
+)
+
+from .counter_proposal_intelligence import (
+    CounterProposalIntelligence,
+)
+from .proposal_scoring_engine import (
+    ProposalScoringEngine,
+)
+from .proposal_scoring_models import (
+    CounterProposalRecommendation,
+    ProposalRankingResult,
+    ProposalScoreBreakdown,
+    ProposalScoringPolicy,
+    ProposalScoringWeights,
+)
+
+__all__.extend(
+    [
+        "CounterProposalIntelligence",
+        "CounterProposalRecommendation",
+        "ProposalRankingResult",
+        "ProposalScoreBreakdown",
+        "ProposalScoringEngine",
+        "ProposalScoringPolicy",
+        "ProposalScoringWeights",
+    ]
+)
+
+from .consensus_models import (
+    ConflictResolutionResult,
+    ConflictResolutionStrategy,
+    ConsensusFailureReason,
+    ConsensusPolicy,
+    ProposalConsensusResult,
+    SessionConsensusResult,
+)
+from .negotiation_conflict_resolution import (
+    NegotiationConflictResolver,
+)
+from .session_consensus_engine import (
+    SessionConsensusEngine,
+)
+from .weighted_consensus_engine import (
+    WeightedConsensusEngine,
+)
+
+__all__.extend(
+    [
+        "ConflictResolutionResult",
+        "ConflictResolutionStrategy",
+        "ConsensusFailureReason",
+        "ConsensusPolicy",
+        "NegotiationConflictResolver",
+        "ProposalConsensusResult",
+        "SessionConsensusEngine",
+        "SessionConsensusResult",
+        "WeightedConsensusEngine",
+    ]
+)
+
+from .negotiation_coordinator import (
+    NegotiationCoordinator,
+)
+from .negotiation_event_models import (
+    NegotiationConsensusEventPayload,
+    NegotiationEventType,
+    NegotiationProposalEventPayload,
+    NegotiationSessionEventPayload,
+    NegotiationVoteEventPayload,
+)
+from .negotiation_event_publisher import (
+    NegotiationEventPublisher,
+)
+
+__all__.extend(
+    [
+        "NegotiationConsensusEventPayload",
+        "NegotiationCoordinator",
+        "NegotiationEventPublisher",
+        "NegotiationEventType",
+        "NegotiationProposalEventPayload",
+        "NegotiationSessionEventPayload",
+        "NegotiationVoteEventPayload",
+    ]
+)
