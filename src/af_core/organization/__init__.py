@@ -89,3 +89,113 @@ __all__ = [
     "UnfilledRole",
     "ValidationSeverity",
 ]
+
+from .dynamic_role_assignment import (
+    DynamicAgentProvider,
+    DynamicRoleAssignmentEngine,
+)
+from .dynamic_role_models import (
+    DynamicRoleAssignment,
+    DynamicRoleRequirement,
+    RoleAssignmentAction,
+    RoleAssignmentReason,
+    RoleAssignmentRequest,
+    RoleAssignmentResult,
+    RoleAssignmentStatus,
+    RoleCandidateEvaluation,
+)
+from .role_assignment_repository import (
+    RoleAssignmentRepository,
+)
+
+__all__.extend(
+    [
+        "DynamicAgentProvider",
+        "DynamicRoleAssignment",
+        "DynamicRoleAssignmentEngine",
+        "DynamicRoleRequirement",
+        "RoleAssignmentAction",
+        "RoleAssignmentReason",
+        "RoleAssignmentRepository",
+        "RoleAssignmentRequest",
+        "RoleAssignmentResult",
+        "RoleAssignmentStatus",
+        "RoleCandidateEvaluation",
+    ]
+)
+
+from .agent_runtime_metrics import (
+    AgentAvailabilityStatus,
+    AgentRuntimeMetrics,
+    RuntimeScoreBreakdown,
+    RuntimeScoringWeights,
+)
+from .agent_runtime_repository import (
+    AgentRuntimeMetricsRepository,
+)
+from .runtime_agent_scorer import (
+    RuntimeAgentScorer,
+)
+
+__all__.extend(
+    [
+        "AgentAvailabilityStatus",
+        "AgentRuntimeMetrics",
+        "AgentRuntimeMetricsRepository",
+        "RuntimeAgentScorer",
+        "RuntimeScoreBreakdown",
+        "RuntimeScoringWeights",
+    ]
+)
+
+from .automated_role_failover import (
+    AutomatedRoleFailoverEngine,
+)
+from .role_failover_models import (
+    ReassignmentPolicy,
+    RoleFailoverRequest,
+    RoleFailoverResult,
+    RoleHealthAssessment,
+    RoleHealthDecision,
+    RoleHealthTrigger,
+)
+from .role_reassignment_policy import (
+    RoleReassignmentPolicyEngine,
+)
+
+__all__.extend(
+    [
+        "AutomatedRoleFailoverEngine",
+        "ReassignmentPolicy",
+        "RoleFailoverRequest",
+        "RoleFailoverResult",
+        "RoleHealthAssessment",
+        "RoleHealthDecision",
+        "RoleHealthTrigger",
+        "RoleReassignmentPolicyEngine",
+    ]
+)
+
+from .dynamic_role_coordinator import (
+    DynamicRoleCoordinator,
+    DynamicRoleLifecycleResult,
+)
+from .role_event_models import (
+    RoleAssignmentEventPayload,
+    RoleEventType,
+    RoleFailoverEventPayload,
+)
+from .role_event_publisher import (
+    RoleEventPublisher,
+)
+
+__all__.extend(
+    [
+        "DynamicRoleCoordinator",
+        "DynamicRoleLifecycleResult",
+        "RoleAssignmentEventPayload",
+        "RoleEventPublisher",
+        "RoleEventType",
+        "RoleFailoverEventPayload",
+    ]
+)
