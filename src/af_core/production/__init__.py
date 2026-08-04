@@ -75,3 +75,44 @@ from .signals import (
     SignalBindingError,
     SignalShutdownController,
 )
+
+from .backup_models import (
+    BackupError,
+    BackupFileKind,
+    BackupFileRecord,
+    BackupIntegrityError,
+    BackupManifest,
+    BackupPlan,
+    BackupPolicyError,
+    BackupResult,
+)
+
+from .backup_service import (
+    BackupService,
+)
+
+from .recovery_models import (
+    RecoveryDrillReport,
+    RecoveryDrillResult,
+    RecoveryError,
+    RecoveryIntegrityError,
+    RecoveryPlan,
+    RecoveryPolicyError,
+    RecoveryResult,
+    RecoveryVerification,
+)
+
+from .recovery_service import (
+    RecoveryService,
+)
+
+from .operational_audit import (
+    OperationalAuditCheck,
+    OperationalAuditError,
+    OperationalAuditMetric,
+    OperationalAuditPlan,
+    OperationalAuditPolicyError,
+    OperationalAuditReport,
+    OperationalAuditService,
+    OperationalAuditStatus,
+)
