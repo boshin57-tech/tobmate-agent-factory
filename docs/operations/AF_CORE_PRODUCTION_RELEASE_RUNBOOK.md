@@ -20,12 +20,13 @@ implemented in Checkpoint 18-F.
 ## 2. Current Package Facts
 
 - Distribution name: `af-core`
-- Current project version: `1.0.0`
+- Current project version: `1.1.0`
 - Required Python version: `>=3.11`
 - Build backend: `hatchling.build`
 - Shell command evaluation is prohibited.
 - Release commands use explicit argument vectors.
-- AF-Core currently has no console-script or module entrypoint.
+- Official console command: `af-core-service`.
+- Official module entrypoint: `python -m af_core.production.service_entrypoint`.
 - Every deployment must declare and review its exact `ExecStart` arguments.
 
 A release must not depend on an undocumented command such as

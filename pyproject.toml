@@ -4,7 +4,7 @@ build-backend="hatchling.build"
 
 [project]
 name="af-core"
-version="1.0.0"
+version="1.1.0"
 requires-python=">=3.11"
 
 dependencies=[
@@ -20,3 +20,6 @@ dev=[
 "pytest>=8",
 "pytest-asyncio>=1.4,<2",
 ]
+
+[project.scripts]
+af-core-service = "af_core.production.service_entrypoint:main"
